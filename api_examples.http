@@ -1,0 +1,70 @@
+@baseUrl = http://127.0.0.1:5000
+@patientToken = REPLACE_PATIENT_TOKEN
+@doctorToken = REPLACE_DOCTOR_TOKEN
+
+### Health
+GET {{baseUrl}}/health
+
+### Init DB (run once)
+POST {{baseUrl}}/init-db
+
+### Register Doctor
+POST {{baseUrl}}/api/auth/doctor/register
+Content-Type: application/json
+
+{
+  "name": "Dr. Meera Sharma",
+  "email": "doctor1@example.com",
+  "password": "doctor123",
+  "hospital": "Ayur Wellness Center",
+  "specialty": "Digestive & Pitta Care"
+}
+
+### Register Patient
+POST {{baseUrl}}/api/auth/patient/register
+Content-Type: application/json
+
+{
+  "name": "Ayesha",
+  "email": "patient1@example.com",
+  "password": "patient123",
+  "age": 26
+}
+
+### Google Login (Patient)
+POST {{baseUrl}}/api/auth/google
+Content-Type: application/json
+
+{
+  "id_token": "REPLACE_GOOGLE_ID_TOKEN"
+}
+
+### Patient Analysis
+POST {{baseUrl}}/api/analysis
+Authorization: Bearer {{patientToken}}
+Content-Type: application/json
+
+{
+  "vata_symptoms": ["Dry Skin", "Anxiety"],
+  "pitta_symptoms": ["Acidity"],
+  "kapha_symptoms": []
+}
+
+### Recommend Doctor
+GET {{baseUrl}}/api/doctors/recommend?issue=digestive&dosha=Pitta&therapy=Virechana
+
+### Book Appointment
+POST {{baseUrl}}/api/appointments
+Authorization: Bearer {{patientToken}}
+Content-Type: application/json
+
+{
+  "issue": "digestive",
+  "use_system_suggestion": true,
+  "appointment_date": "2026-03-30",
+  "appointment_time": "11:30:00"
+}
+
+### Doctor Appointments
+GET {{baseUrl}}/api/doctor/appointments
+Authorization: Bearer {{doctorToken}}

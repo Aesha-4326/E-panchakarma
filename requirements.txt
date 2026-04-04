@@ -1,0 +1,5 @@
+flask==3.0.3
+flask-cors==4.0.1
+mysql-connector-python==9.0.0
+google-auth==2.35.0
+requests==2.32.3

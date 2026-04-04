@@ -1,0 +1,3340 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E-Panchakarma AI System</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&family=Noto+Sans+Gujarati:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyAZ3rkRDp7S8dxXT3vtB9raKtNqGThTf7k",
+    authDomain: "e-panchkarma.firebaseapp.com",
+    projectId: "e-panchkarma",
+    storageBucket: "e-panchkarma.firebasestorage.app",
+    messagingSenderId: "789217167561",
+    appId: "1:789217167561:web:814b3bf1fc0346e7982518"
+};
+
+if(window.firebase && !firebase.apps.length){
+    firebase.initializeApp(firebaseConfig);
+}
+</script>
+<style>
+:root{
+    --leaf:#2e7d32;
+    --leaf-dark:#1b5e20;
+    --leaf-soft:#73b07a;
+    --sun:#ffd54f;
+    --earth:#5d4037;
+    --paper:#ffffff;
+    --mist:#e8f5e9;
+    --aura:#e4f3db;
+    --sticky-toolbar-top:14px;
+    --sticky-toolbar-offset:96px;
+}
+
+body{
+    font-family:'Poppins','Noto Sans Devanagari','Noto Sans Gujarati',sans-serif;
+    background:
+    radial-gradient(circle at 10% 20%, #d8f0d0 0%, transparent 32%),
+    radial-gradient(circle at 90% 12%, #fff2ca 0%, transparent 28%),
+    radial-gradient(circle at 82% 84%, #d9ecff 0%, transparent 26%),
+    linear-gradient(135deg,#eef8e9,#ffffff 45%,#f7f3df);
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:0.28;
+    background-image:
+    linear-gradient(120deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 44%),
+    repeating-linear-gradient(45deg, rgba(46,125,50,0.03) 0 6px, rgba(255,255,255,0.03) 6px 12px);
+    z-index:-1;
+}
+
+.page{
+    display:none;
+    animation:fadeIn 0.45s ease;
+}
+
+.page.page-default{
+    display:block;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(12px);}
+    to{opacity:1;transform:translateY(0);}
+}
+
+.btn{
+    background:linear-gradient(135deg,var(--leaf),#66bb6a);
+    color:#fff !important;
+    border:none !important;
+    border-radius:10px;
+    font-weight:600;
+}
+
+.btn:hover{
+    background:linear-gradient(135deg,var(--leaf-dark),#43a047);
+    transform:translateY(-1px);
+}
+
+.ai-popup{
+    position:fixed;
+    top:20px;
+    right:-420px;
+    background:linear-gradient(45deg,#00c853,#64dd17);
+    color:#fff;
+    padding:14px 22px;
+    border-radius:12px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.25);
+    transition:0.4s ease;
+    z-index:9999;
+}
+
+.ai-popup.show{
+    right:20px;
+}
+
+.ai-popup.error{
+    background:linear-gradient(45deg,#d50000,#ff5252);
+}
+
+.ai-popup.warning{
+    background:linear-gradient(45deg,#ef6c00,#ffa726);
+}
+
+.hero-img{
+    width:5%;
+    max-width:1000px;
+    height:auto;
+    border-radius:20px;
+    box-shadow:0 18px 40px rgba(46,125,50,0.18);
+    border:5px solid rgba(255,255,255,0.65);
+}
+
+.site-hero{
+    transition:opacity 0.2s ease, transform 0.2s ease;
+}
+
+.card{
+    border:none;
+    border-radius:22px;
+    background:rgba(255,255,255,0.88);
+    box-shadow:0 16px 42px rgba(31,74,41,0.12);
+    backdrop-filter:blur(8px);
+}
+
+#patientLayout{
+    max-width:1180px;
+    margin:24px auto 0;
+    padding:0 18px 28px;
+    display:none;
+}
+
+.top-toolbar-wrap{
+    position:sticky;
+    top:var(--sticky-toolbar-top);
+    z-index:2000;
+    margin-bottom:18px;
+}
+
+.top-toolbar{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:10px 12px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.82);
+    backdrop-filter:blur(10px);
+    box-shadow:0 14px 30px rgba(31,74,41,0.12);
+}
+
+.patient-shell{
+    display:grid;
+    grid-template-columns:280px minmax(0,1fr);
+    min-height:70vh;
+    border-radius:28px;
+    overflow:visible;
+    background:rgba(255,255,255,0.9);
+    box-shadow:0 18px 46px rgba(31,74,41,0.14);
+    backdrop-filter:blur(10px);
+}
+
+#patientLayout.doctor-mode .dashboard-sidebar{
+    display:none;
+}
+
+#patientLayout.doctor-mode .patient-shell{
+    grid-template-columns:1fr;
+}
+
+.dashboard-sidebar{
+    padding:30px 22px;
+    background:linear-gradient(180deg,#d8f2d2,#c2e9bc);
+    border-right:1px solid rgba(46,125,50,0.12);
+    display:flex;
+    flex-direction:column;
+    position:sticky;
+    top:var(--sticky-toolbar-offset);
+    align-self:start;
+    min-height:70vh;
+}
+
+.dashboard-brand{
+    margin-bottom:24px;
+}
+
+.dashboard-kicker{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.72);
+    color:#2f6b33;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+}
+
+.dashboard-brand h4{
+    margin:14px 0 8px;
+    color:#1f4d26;
+    font-size:34px;
+}
+
+.dashboard-brand p{
+    margin:0;
+    color:#48714e;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.dashboard-actions{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:8px;
+}
+
+.sidebar-link{
+    width:100%;
+    padding:11px 16px;
+    font-size:15px;
+    text-align:left;
+    border-radius:16px;
+    background:linear-gradient(135deg,#82d78b,#aee6ae) !important;
+    color:#ffffff !important;
+    box-shadow:0 10px 22px rgba(88,160,96,0.2);
+}
+
+.sidebar-link:hover{
+    background:linear-gradient(135deg,#70cb79,#9bde9b) !important;
+}
+
+.sidebar-link.is-active{
+    background:linear-gradient(135deg,#5cbf68,#89d993) !important;
+    box-shadow:0 12px 24px rgba(64,140,73,0.28);
+}
+
+.sidebar-link.logout-link{
+    background:linear-gradient(135deg,#d32f2f,#ef5350) !important;
+    box-shadow:0 10px 22px rgba(211,47,47,0.22);
+}
+
+.sidebar-link.logout-link:hover{
+    background:linear-gradient(135deg,#c62828,#e53935) !important;
+}
+
+.patient-content{
+    padding:22px;
+    min-width:0;
+}
+
+.patient-content .page{
+    margin:0;
+}
+
+.patient-content .card{
+    margin:0;
+}
+
+.dashboard-main{
+    padding:38px 38px 34px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    background:linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,252,247,0.96));
+    min-height:calc(70vh - 44px);
+}
+
+.dashboard-main h3{
+    font-size:54px;
+    color:#263528;
+    margin-bottom:14px;
+}
+
+.dashboard-subtitle{
+    max-width:520px;
+    margin-bottom:24px;
+    color:#5f7461;
+    font-size:16px;
+    line-height:1.7;
+}
+
+.dashboard-highlights{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+}
+
+.dashboard-tile{
+    padding:18px 20px;
+    border-radius:20px;
+    background:linear-gradient(135deg,#f8fff5,#eef9ec);
+    border:1px solid #d7ead2;
+}
+
+.dashboard-tile strong{
+    display:block;
+    margin-bottom:6px;
+    color:#2e6233;
+    font-size:16px;
+}
+
+.dashboard-tile span{
+    color:#648068;
+    font-size:14px;
+    line-height:1.6;
+}
+
+@media (max-width: 768px){
+    :root{
+        --sticky-toolbar-top:10px;
+        --sticky-toolbar-offset:86px;
+    }
+
+    .top-toolbar{
+        justify-content:flex-start;
+        gap:8px;
+        padding:10px;
+        border-radius:18px;
+    }
+
+    #patientLayout{
+        padding:0 12px 22px;
+    }
+
+    .patient-shell{
+        grid-template-columns:1fr;
+        min-height:auto;
+        overflow:visible;
+    }
+
+    .dashboard-sidebar{
+        border-right:none;
+        border-bottom:1px solid rgba(46,125,50,0.12);
+        position:sticky;
+        top:var(--sticky-toolbar-offset);
+        z-index:1500;
+        min-height:auto;
+    }
+
+    .patient-content{
+        padding:14px;
+    }
+
+    .dashboard-main{
+        padding:26px 20px;
+        min-height:auto;
+    }
+
+    .dashboard-main h3{
+        font-size:42px;
+    }
+
+    .dashboard-highlights{
+        grid-template-columns:1fr;
+    }
+
+    .auth-screen > .card{
+        padding:18px !important;
+    }
+
+    .auth-screen .form-control,
+    .auth-screen .form-select{
+        padding:9px 14px;
+        font-size:15px;
+    }
+}
+
+h2,h3,h4,h5{
+    font-family:'Cormorant Garamond',serif;
+    letter-spacing:0.02em;
+}
+
+.question-subtitle{
+    background:linear-gradient(135deg,#f4fbef,#eef7ff);
+    border:1px solid #dce9d7;
+    border-radius:14px;
+    padding:10px 12px;
+    color:#2f5b37;
+}
+
+.symptom-box{
+    margin-top:0;
+    padding:0;
+    border-radius:16px;
+    border:0;
+    background:transparent;
+}
+
+.symptom-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+
+.symptom-item{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:14px;
+    line-height:1.35;
+    padding:10px 12px;
+    border-radius:12px;
+    background:#fff;
+    border:1px solid #e3eadf;
+    transition:transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.symptom-item:hover{
+    transform:translateY(-1px);
+    border-color:#c8ddc3;
+    box-shadow:0 8px 16px rgba(31,74,41,0.08);
+}
+
+.symptom-item input[type="checkbox"]{
+    transform:scale(1.2);
+    accent-color:var(--leaf);
+}
+
+@media (max-width: 768px){
+    .symptom-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+.panel-label{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:999px;
+    background:#edf7ed;
+    color:var(--leaf-dark);
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+}
+
+.auth-note{
+    background:linear-gradient(135deg,#f7fbef,#eef7ff);
+    border:1px solid #dbe7d3;
+    border-radius:14px;
+    padding:12px 14px;
+    font-size:14px;
+    color:#35533b;
+}
+
+.auth-screen{
+    max-width:1120px;
+    margin:0 auto;
+}
+
+.auth-screen > .card{
+    padding:28px !important;
+}
+
+.auth-screen .form-control,
+.auth-screen .form-select{
+    padding:10px 16px;
+    font-size:16px;
+}
+
+.auth-screen .my-2{
+    margin-top:0.55rem !important;
+    margin-bottom:0.55rem !important;
+}
+
+.auth-screen .btn.w-100{
+    padding-top:10px;
+    padding-bottom:10px;
+}
+
+.auth-screen .text-center.mb-3{
+    margin-bottom:0.9rem !important;
+}
+
+.suggestion-card{
+    margin-top:14px;
+    padding:16px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#f9fff2,#eef8ff);
+    border:1px solid #dce9d7;
+    box-shadow:0 12px 24px rgba(31,74,41,0.08);
+}
+
+.suggestion-card strong{
+    color:var(--leaf-dark);
+}
+
+.auth-divider{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:16px 0 12px;
+    color:#7b8d79;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+}
+
+.auth-divider::before,
+.auth-divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:#dbe7d3;
+}
+
+.google-shell{
+    border:1px solid #d8e3d2;
+    border-radius:16px;
+    padding:10px 12px;
+    background:linear-gradient(135deg,#ffffff,#f6fbf5);
+}
+
+.google-btn{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    padding:10px 16px;
+    border:1px solid #d5ded0;
+    border-radius:999px;
+    background:#fff;
+    color:#233127;
+    font-weight:600;
+    transition:transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.google-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 8px 18px rgba(31,74,41,0.1);
+}
+
+.google-mark{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    display:inline-grid;
+    place-items:center;
+    font-size:12px;
+    font-weight:700;
+    color:#fff;
+    background:conic-gradient(#4285f4 0 25%, #34a853 25% 50%, #fbbc05 50% 75%, #ea4335 75% 100%);
+}
+
+.google-status{
+    font-size:13px;
+    color:#5b6f5d;
+    margin-top:10px;
+}
+
+.dropdown-content{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.35s ease;
+}
+
+.dropdown-content.active{
+    max-height:2000px;
+}
+
+.dropdown-content.active.symptom-box{
+    margin-top:12px;
+    padding:14px;
+    border:1px solid #dce9d7;
+    background:linear-gradient(180deg,#fcfffa,#f2f8ec);
+}
+
+.therapy-detail{
+    margin-top:0;
+    padding:0;
+    border-radius:20px;
+    background:transparent;
+    border:0;
+    box-shadow:none;
+}
+
+.dropdown-content.active.therapy-detail{
+    margin-top:12px;
+    padding:18px;
+    background:linear-gradient(180deg,#fbfff7,#f2f8ec);
+    border:1px solid #dce9d7;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.75), 0 14px 28px rgba(33,79,43,0.08);
+}
+
+.therapy-detail p{
+    margin-bottom:10px;
+    line-height:1.65;
+    color:#2d4131;
+}
+
+.therapy-detail p:first-child{
+    margin-bottom:14px;
+    padding:10px 14px;
+    border-left:5px solid var(--leaf);
+    border-radius:14px;
+    background:linear-gradient(90deg,#e9f6e7,#f7fbf2);
+    color:var(--leaf-dark);
+    font-size:18px;
+}
+
+.therapy-detail p b{
+    color:#183d22;
+}
+
+.therapy-img{
+    width:100%;
+    border-radius:14px;
+    margin-top:14px;
+    border:4px solid rgba(255,255,255,0.9);
+    box-shadow:0 18px 30px rgba(33,79,43,0.14);
+}
+
+.spinner{
+    border:4px solid #e9ecef;
+    border-top:4px solid var(--leaf);
+    border-radius:50%;
+    width:42px;
+    height:42px;
+    animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+    100%{transform:rotate(360deg);}
+}
+
+.terms-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9998;
+}
+
+.terms-content{
+    background:#fff;
+    width:min(92vw,520px);
+    border-radius:18px;
+    padding:24px;
+    max-height:80vh;
+    overflow-y:auto;
+}
+
+.dark-mode{
+    background:#121212 !important;
+    color:#f1f1f1 !important;
+}
+
+.dark-mode .card{
+    background:#1f1f1f;
+    color:#f1f1f1;
+}
+
+.dark-mode .question-subtitle{
+    background:#1d2a22;
+    border-color:#31493a;
+    color:#dce8dd;
+}
+
+.dark-mode .symptom-box{
+    background:transparent;
+    border:0;
+}
+
+.dark-mode .dropdown-content.active.symptom-box{
+    background:linear-gradient(180deg,#182019,#202924);
+    border:1px solid #35503b;
+}
+
+.dark-mode .symptom-item{
+    background:#1f2a22;
+    border-color:#35503b;
+    color:#e5efe6;
+}
+
+.dark-mode .text-muted{
+    color:#d0d0d0 !important;
+}
+
+.dark-mode .auth-note{
+    background:#1d2a22;
+    border-color:#31493a;
+    color:#dce8dd;
+}
+
+.dark-mode .suggestion-card{
+    background:linear-gradient(135deg,#1b2520,#1d2630);
+    border-color:#35503b;
+}
+
+.dark-mode .google-shell{
+    background:#182019;
+    border-color:#35503b;
+}
+
+.dark-mode .therapy-detail{
+    background:transparent;
+    border:0;
+    box-shadow:none;
+}
+
+.dark-mode .dropdown-content.active.therapy-detail{
+    background:linear-gradient(180deg,#182019,#202924);
+    border:1px solid #35503b;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.03), 0 14px 28px rgba(0,0,0,0.28);
+}
+
+.dark-mode .therapy-detail p{
+    color:#e4efe4;
+}
+
+.dark-mode .therapy-detail p:first-child{
+    background:linear-gradient(90deg,#203226,#182019);
+    color:#b8f2be;
+}
+
+.dark-mode .therapy-detail p b{
+    color:#d6f7d8;
+}
+
+.dark-mode .google-status{
+    color:#dce8dd;
+}
+
+.dark-mode .google-btn{
+    background:#202a22;
+    border-color:#35503b;
+    color:#f1f1f1;
+}
+
+#databaseInfo{
+    display:none;
+}
+
+.language-select{
+    width:auto;
+    min-width:150px;
+    display:inline-block;
+    vertical-align:middle;
+    border-radius:10px;
+    border:1px solid #cfe2cf;
+    box-shadow:none;
+}
+
+.language-label{
+    margin-left:8px;
+    margin-right:2px;
+    font-size:14px;
+    font-weight:600;
+    color:#2f5b37;
+}
+
+.result-chart-wrap{
+    width:min(320px, 100%);
+    margin:16px auto 0;
+}
+
+.result-chart-wrap canvas{
+    width:100% !important;
+    height:320px !important;
+}
+</style>
+</head>
+<body class="p-4">
+
+<div class="top-toolbar-wrap">
+<div class="top-toolbar">
+<button class="btn btn-sm" id="navBackBtn" onclick="window.history.back()">Back</button>
+<button class="btn btn-sm" id="navForwardBtn" onclick="window.history.forward()">Forward</button>
+<button class="btn btn-sm" id="navReloadBtn" onclick="location.reload()">Reload</button>
+<button class="btn btn-sm" id="darkModeBtn" onclick="toggleDarkMode()">Dark Mode</button>
+<label class="language-label" id="languageLabel" for="languageSelect">Language</label>
+<select id="languageSelect" class="form-select form-select-sm language-select" onchange="setLanguage(this.value)">
+    <option value="en">English</option>
+    <option value="hi">Hindi</option>
+    <option value="gu">Gujarati</option>
+</select>
+</div>
+</div>
+
+<div id="loader" style="display:none;" class="mb-3">
+    <div class="spinner"></div>
+</div>
+
+<div id="aiPopup" class="ai-popup">
+    <span id="aiMessage"></span>
+</div>
+
+<div class="text-center mb-4 site-hero" id="siteHero">
+    <img src="images/logo.png" alt="Panchakarma banner" class="hero-img" width="1" height="1">
+    <h2 class="text-success mt-3">E-Panchakarma AI Health System</h2>
+</div>
+
+<div class="container">
+    <div class="page page-default auth-screen" id="loginPage" style="display:block;">
+        <div class="card p-4 shadow">
+            
+            <div id="termsModal" class="terms-modal">
+                <div class="terms-content">
+                    <h4 class="text-danger">Terms & Conditions</h4>
+                    <div class="terms-body">
+                        <p>1. This system provides health suggestions based on symptoms.</p>
+                        <p>2. It does not replace professional medical advice.</p>
+                        <p>3. Patient data is stored locally for project demonstration.</p>
+                        <p>4. Users should consult a certified Ayurvedic doctor before therapy.</p>
+                        <p>5. By using this system, you agree to educational and research usage.</p>
+                    </div>
+                    <button class="btn btn-danger w-100 mt-2" onclick="closeTerms()">Close</button>
+                </div>
+            </div>
+
+            <h6 class="text-success text-center"><pre>सर्वे भवन्तु सुखिनः। सर्वे सन्तु निरामयाः।
+सर्वे भद्राणि पश्यन्तु। मा कश्चिद् दुःखभाग्भवेत्॥.</pre></h6>
+
+            <div class="text-center mb-3">
+                <button class="btn btn-outline-success btn-sm" onclick="showLogin()">Login</button>
+                <button class="btn btn-outline-success btn-sm" onclick="showRegister()">Register</button>
+                <button class="btn btn-outline-success btn-sm" onclick="showPage('doctorLoginPage')">Doctor Login</button>
+            </div>
+
+            <div id="loginForm">
+                <input class="form-control my-2" id="loginName" placeholder="Enter Name">
+                <input class="form-control my-2" id="loginEmail" type="email" placeholder="Enter Email">
+                <input class="form-control my-2" id="loginPassword" type="password" placeholder="Enter Password">
+                <div class="form-check my-2 text-start">
+                    <input class="form-check-input" type="checkbox" id="showLoginPassword" onclick="togglePasswordVisibility('loginPassword', this.checked)">
+                    <label class="form-check-label" for="showLoginPassword">Show Password</label>
+                </div>
+                <button class="btn w-100 my-2" onclick="login()">Login</button>
+
+                <div class="auth-divider">or</div>
+                <div class="google-shell">
+                    <button type="button" class="google-btn" id="googleLoginBtn" onclick="signInWithGoogle()">
+                        <span class="google-mark">G</span>
+                        Continue with Google
+                    </button>
+                </div>
+
+            </div>
+
+            <div id="registerForm" style="display:none;">
+                <input class="form-control my-2" id="nameInput" placeholder="Name">
+                <input class="form-control my-2" id="emailInput" type="email" placeholder="Enter Email">
+                <input class="form-control my-2" id="ageInput" placeholder="Age">
+                <input class="form-control my-2" id="passwordInput" type="password" placeholder="Create Password">
+                <div class="form-check my-2 text-start">
+                    <input class="form-check-input" type="checkbox" id="showRegisterPassword" onclick="togglePasswordVisibility('passwordInput', this.checked)">
+                    <label class="form-check-label" for="showRegisterPassword">Show Password</label>
+                </div>
+
+                <div class="form-check my-2">
+                    <input class="form-check-input" type="checkbox" id="termsCheck">
+                    <label class="form-check-label">
+                        I agree to the
+                        <a href="#" onclick="openTerms(); return false;">Terms & Conditions</a>
+                    </label>
+                </div>
+
+                <button class="btn btn-success w-100" onclick="register()">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="page auth-screen" id="doctorLoginPage" style="display:none;">
+        <div class="card p-4 shadow">
+            <h4 class="text-center text-dark">Doctor Admin </h4>
+            <div class="text-center mb-3">
+                <button class="btn btn-outline-success btn-sm" onclick="showDoctorLoginForm()">Doctor Login</button>
+                <button class="btn btn-outline-success btn-sm" onclick="showDoctorRegisterForm()">Doctor Register</button>
+            </div>
+
+            <div id="doctorLoginForm">
+                <div class="auth-note mb-3">
+                    <b id="doctorEmailHint">No doctor registered yet</b>.
+                </div>
+                <input class="form-control my-2" id="doctorEmail" type="email" placeholder="Doctor Email">
+                <input class="form-control my-2" id="doctorPassword" type="password" placeholder="Doctor Password">
+                <div class="form-check my-2 text-start">
+                    <input class="form-check-input" type="checkbox" id="showDoctorLoginPassword" onclick="togglePasswordVisibility('doctorPassword', this.checked)">
+                    <label class="form-check-label" for="showDoctorLoginPassword">Show Password</label>
+                </div>
+                <button class="btn btn-dark w-100 my-2" onclick="doctorLogin()">Doctor Login</button>
+
+                <div class="auth-divider">or</div>
+                <div class="google-shell">
+                    <button type="button" class="google-btn" id="doctorGoogleLoginBtn" onclick="signInDoctorWithGoogle()">
+                        <span class="google-mark">G</span>
+                        Continue with Google
+                    </button>
+                </div>
+            </div>
+
+            <div id="doctorRegisterForm" style="display:none;">
+                <div class="auth-note mb-3">
+                    Register doctor profile to enable direct login with your email and password.
+                </div>
+                <input class="form-control my-2" id="doctorNameInput" placeholder="Doctor Name">
+                <input class="form-control my-2" id="doctorEmailInput" type="email" placeholder="Doctor Email">
+                <input class="form-control my-2" id="doctorHospitalInput" placeholder="Hospital Name">
+                <select class="form-control my-2" id="doctorSpecialtyInput">
+                    <option value="">Select Doctor Specialty</option>
+                    <option value="Respiratory & Kapha Care">Respiratory & Kapha Care</option>
+                    <option value="Digestive & Pitta Care">Digestive & Pitta Care</option>
+                    <option value="Vata & Pain Care">Vata & Pain Care</option>
+                    <option value="ENT & Head Care">ENT & Head Care</option>
+                    <option value="Skin & Blood Purification">Skin & Blood Purification</option>
+                    <option value="General Panchakarma">General Panchakarma</option>
+                </select>
+                <input class="form-control my-2" id="doctorPasswordInput" type="password" placeholder="Create Password">
+                <div class="form-check my-2 text-start">
+                    <input class="form-check-input" type="checkbox" id="showDoctorRegisterPassword" onclick="togglePasswordVisibility('doctorPasswordInput', this.checked)">
+                    <label class="form-check-label" for="showDoctorRegisterPassword">Show Password</label>
+                </div>
+                <button class="btn btn-success w-100 my-2" onclick="registerDoctor()">Register Doctor</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="patientLayout" style="display:none;">
+        <div class="patient-shell">
+            <aside class="dashboard-sidebar">
+                <div class="dashboard-brand">
+                    <span class="dashboard-kicker">Dashboard</span>
+                    <h4>Quick Access</h4>
+                    <p>Use this side navigation to move through every patient page.</p>
+                </div>
+                <div class="dashboard-actions">
+                    <button class="btn sidebar-link" data-page="dashboardPage" onclick="showPage('dashboardPage')">Dashboard</button>
+                    <button class="btn sidebar-link" data-page="symptomPage" onclick="showPage('symptomPage')">Start Analysis</button>
+                    <button class="btn sidebar-link" data-page="resultPage" onclick="showPage('resultPage')">View Result</button>
+                    <button class="btn sidebar-link" data-page="appointmentPage" onclick="showPage('appointmentPage')">Book Appointment</button>
+                    <button class="btn sidebar-link" data-page="panchakarmaPage" onclick="showPage('panchakarmaPage')">View Panchakarma Description</button>
+                    <button class="btn sidebar-link logout-link" onclick="logout()">Logout</button>
+                </div>
+            </aside>
+            <div class="patient-content">
+                <div class="page" id="dashboardPage">
+                    <div class="dashboard-main">
+                        <h3>Welcome <span id="patientName"></span></h3>
+                        <p class="dashboard-subtitle">Manage your analysis journey, view care guidance, and keep your appointments organized from this patient dashboard.</p>
+                        <div class="dashboard-highlights">
+                            <div class="dashboard-tile">
+                                <strong>Health Analysis</strong>
+                                <span>Start a symptom-based assessment to review dosha imbalance and suggested care.</span>
+                            </div>
+                            <div class="dashboard-tile">
+                                <strong>Appointments</strong>
+                                <span>Book a visit and keep track of your next consultation with ease.</span>
+                            </div>
+                            <div class="dashboard-tile">
+                                <strong>Panchakarma Guide</strong>
+                                <span>Read therapy descriptions before choosing the most suitable treatment path.</span>
+                            </div>
+                            <div class="dashboard-tile">
+                                <strong>Patient Results</strong>
+                                <span>Return to your result page anytime to review your latest health summary.</span>
+                            </div>
+                            <div class="dashboard-tile">
+                                <strong>Personal Dashboard</strong>
+                                <span>Use the left sidebar anytime to move quickly between analysis, results, and appointments.</span>
+                            </div>
+                            <div class="dashboard-tile">
+                                <strong>Therapy Overview</strong>
+                                <span>Keep important Panchakarma information visible while you navigate your account.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="symptomPage">
+        <div class="card p-4 shadow">
+            <h4 class="text-center text-success">Health Questionnaire</h4>
+            <p class="question-subtitle text-center mb-3">Select all symptoms you currently feel. More accurate selection gives better dosha analysis.</p>
+
+            <button class="btn btn-success w-100" onclick="toggleBox('vataBox')">Vata Symptoms</button>
+            <div id="vataBox" class="dropdown-content symptom-box mt-2">
+                <div class="symptom-grid">
+                    <label class="symptom-item"><input type="checkbox" name="vata" value="Dry Skin"> Dry Skin</label>
+                    <label class="symptom-item"><input type="checkbox" name="vata" value="Anxiety"> Anxiety</label>
+                    <label class="symptom-item"><input type="checkbox" name="vata" value="Joint Pain"> Joint Pain</label>
+                    <label class="symptom-item"><input type="checkbox" name="vata" value="Constipation"> Constipation</label>
+                    <label class="symptom-item"><input type="checkbox" name="vata" value="Insomnia / Light Sleep"> Insomnia / Light Sleep</label>
+                    <label class="symptom-item"><input type="checkbox" name="vata" value="Cold Hands and Feet"> Cold Hands and Feet</label>
+                    <label class="symptom-item"><input type="checkbox" name="vata" value="Gas / Bloating"> Gas / Bloating</label>
+                    <label class="symptom-item"><input type="checkbox" name="vata" value="Irregular Appetite"> Irregular Appetite</label>
+                </div>
+            </div>
+
+            <button class="btn btn-danger w-100 mt-3" onclick="toggleBox('pittaBox')">Pitta Symptoms</button>
+            <div id="pittaBox" class="dropdown-content symptom-box mt-2">
+                <div class="symptom-grid">
+                    <label class="symptom-item"><input type="checkbox" name="pitta" value="Acidity"> Acidity</label>
+                    <label class="symptom-item"><input type="checkbox" name="pitta" value="Anger"> Anger</label>
+                    <label class="symptom-item"><input type="checkbox" name="pitta" value="Skin Rashes"> Skin Rashes</label>
+                    <label class="symptom-item"><input type="checkbox" name="pitta" value="Excessive Sweating"> Excessive Sweating</label>
+                    <label class="symptom-item"><input type="checkbox" name="pitta" value="Burning Sensation"> Burning Sensation</label>
+                    <label class="symptom-item"><input type="checkbox" name="pitta" value="Loose Motions"> Loose Motions</label>
+                    <label class="symptom-item"><input type="checkbox" name="pitta" value="Hair Fall / Early Greying"> Hair Fall / Early Greying</label>
+                    <label class="symptom-item"><input type="checkbox" name="pitta" value="Irritability"> Irritability</label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary w-100 mt-3" onclick="toggleBox('kaphaBox')">Kapha Symptoms</button>
+            <div id="kaphaBox" class="dropdown-content symptom-box mt-2">
+                <div class="symptom-grid">
+                    <label class="symptom-item"><input type="checkbox" name="kapha" value="Weight Gain"> Weight Gain</label>
+                    <label class="symptom-item"><input type="checkbox" name="kapha" value="Laziness"> Laziness</label>
+                    <label class="symptom-item"><input type="checkbox" name="kapha" value="Cold & Cough"> Cold & Cough</label>
+                    <label class="symptom-item"><input type="checkbox" name="kapha" value="Water Retention / Swelling"> Water Retention / Swelling</label>
+                    <label class="symptom-item"><input type="checkbox" name="kapha" value="Slow Digestion"> Slow Digestion</label>
+                    <label class="symptom-item"><input type="checkbox" name="kapha" value="Excess Sleep"> Excess Sleep</label>
+                    <label class="symptom-item"><input type="checkbox" name="kapha" value="Mucus Congestion"> Mucus Congestion</label>
+                    <label class="symptom-item"><input type="checkbox" name="kapha" value="Low Motivation"> Low Motivation</label>
+                </div>
+            </div>
+
+            <button class="btn btn-success w-100 mt-3" onclick="analyze()">Analyze</button>
+        </div>
+    </div>
+
+                <div class="page" id="resultPage">
+        <div class="card p-4 shadow">
+            <h4 class="text-success text-center">Dosha Result</h4>
+            <p><b>Dominant Dosha:</b> <span id="doshaText"></span></p>
+            <div id="therapySection">
+                <h5 class="mt-3 text-primary">Recommended Therapy</h5>
+                <p id="therapyText"></p>
+                <p id="therapyDescription"></p>
+                <img id="therapyImage" class="therapy-img" alt="Therapy recommendation">
+            </div>
+            <p><b>Diet & Lifestyle:</b> <span id="dietText"></span></p>
+            <p><b>Progress:</b> <span id="progressText"></span></p>
+            <div class="result-chart-wrap">
+                <canvas id="chartCanvas" class="mt-3"></canvas>
+            </div>
+            <button class="btn btn-success w-100 mt-3" onclick="completeTreatment()">Mark Complete</button>
+            <button class="btn btn-dark w-100 mt-2" onclick="downloadPDF()">Download PDF</button>
+        </div>
+    </div>
+
+    <div class="page" id="doctorPage">
+        <div class="card p-4 shadow">
+            <h4 class="text-success text-center">Doctor Admin</h4>
+            <p><b>Doctor:</b> <span id="doctorDisplayName"></span></p>
+            <p><b>Specialty:</b> <span id="doctorDisplaySpecialty"></span></p>
+            <p><b>Patient:</b> <span id="docPatient"></span></p>
+            <p><b>Dosha:</b> <span id="docDosha"></span></p>
+            <p><b>Therapy:</b> <span id="docTherapy"></span></p>
+            <p><b>Progress:</b> <span id="docProgress"></span></p>
+            <h5 class="mt-4">Appointment List</h5>
+            <ul id="appointmentList" class="list-group mt-2"></ul>
+            <button class="btn btn-danger w-100 mt-3" onclick="doctorLogout()">Doctor Logout</button>
+
+            <div id="databaseInfo">
+                <h5>Database Table Structure</h5>
+<pre>PATIENT(id, name, age, email)
+SYMPTOMS(patient_id, vata, pitta, kapha)
+THERAPY(patient_id, dosha, therapy)
+PROGRESS(patient_id, status)</pre>
+            </div>
+        </div>
+    </div>
+
+                <div class="page" id="appointmentPage">
+        <div class="card p-4 shadow">
+            <h4 class="text-success text-center">Book Appointment</h4>
+            <select class="form-control my-2" id="patientIssue" onchange="updateDoctorRecommendation()">
+                <option value="">Select Health Issue</option>
+                <option value="respiratory">Respiratory / Kapha issue</option>
+                <option value="digestive">Digestive / acidity issue</option>
+                <option value="joint">Joint pain / Vata issue</option>
+                <option value="sinus">Sinus / migraine / head issue</option>
+                <option value="skin">Skin disorder</option>
+                <option value="blood">Blood purification issue</option>
+                <option value="general">General consultation</option>
+            </select>
+            <div class="suggestion-card">
+                <p class="mb-2"><strong>System Suggested Doctor:</strong> <span id="suggestedDoctorName">No doctor suggested yet</span></p>
+                <p class="mb-0"><strong>Why:</strong> <span id="suggestedDoctorReason">Choose your health issue or complete analysis to get a recommendation.</span></p>
+            </div>
+            <select class="form-control my-2" id="doctorSelect"></select>
+            <small class="text-muted d-block mb-2" id="manualDoctorHint">Choose doctor manually, or keep the system suggested doctor selected.</small>
+            <div class="suggestion-card">
+                <p class="mb-2"><strong>Top Matching Doctors</strong></p>
+                <ul id="doctorMatchList" class="mb-0 ps-3"></ul>
+            </div>
+            <input type="date" class="form-control my-2" id="appointDate">
+            <input type="time" class="form-control my-2" id="appointTime">
+            <button class="btn btn-success w-100" onclick="bookAppointment()">Confirm Appointment</button>
+            <p class="mt-3"><b>Status:</b> <span id="appointStatus">No appointment booked</span></p>
+        </div>
+    </div>
+
+                <div class="page" id="panchakarmaPage">
+        <div class="card p-4 shadow">
+            <h3 class="text-success text-center">Panchakarma Therapies</h3>
+            <p class="text-muted text-center">Five Detoxification Therapies of Ayurveda</p>
+
+            <button class="btn btn-primary w-100 mt-2" onclick="toggleBox('vamanaBox')">Vamana (Therapeutic Emesis)</button>
+            <div id="vamanaBox" class="dropdown-content therapy-detail">
+                <p><b>What is Vamana Therapy?</b></p>
+                <p>Vamana Therapy is a specialized detoxification procedure in Ayurveda and one of the five main treatments of Panchakarma. Vamana means therapeutic vomiting, performed in a controlled and scientific manner to remove excess Kapha dosha, including mucus and toxins, from the body.</p>
+                <p><b>Purpose of Vamana Therapy</b></p>
+                <p>Vamana is mainly used to remove excess mucus, detoxify the lungs and stomach, improve digestion and metabolism, and support immunity.</p>
+                <p><b>Diseases Treated</b></p>
+                <p>It is commonly recommended in conditions such as asthma, chronic cough, allergies, skin diseases like eczema and psoriasis, obesity, and sinus problems.</p>
+                <p><b>Requirements for Vamana Therapy</b></p>
+                <p><b>1. Patient Requirement:</b> The patient should be physically fit and have strong digestion. It is generally not recommended for children, weak elderly people, pregnant women, or heart patients.</p>
+                <p><b>2. Materials Required:</b> Medicated ghee for internal lubrication, herbal decoctions such as Madanphala and licorice, milk or salt water, a vomiting vessel, towels, and warm water.</p>
+                <p><b>3. Environment:</b> A clean and calm room is required. Morning time, especially between 6 and 8 AM, is considered best, and the procedure should be supervised by a trained Ayurvedic doctor.</p>
+                <p><b>Procedure of Vamana Therapy</b></p>
+                <p><b>Step 1: Purva Karma (Preparation Phase)</b> Snehana or oleation is done using medicated ghee for 3 to 7 days to loosen toxins. Swedana or sudation uses steam therapy to liquefy toxins.</p>
+                <p><b>Step 2: Pradhana Karma (Main Procedure)</b> The patient drinks herbal decoction or milk. Herbs such as Madanphala are used to induce controlled vomiting. During the process, toxins are expelled through the mouth while the doctor monitors the number of vomits and signs of proper cleansing.</p>
+                <p><b>Step 3: Paschat Karma (Post-Therapy Care)</b> After the procedure, a special light diet such as khichdi is advised. Rest is essential, cold and heavy food should be avoided, and the patient gradually returns to a normal diet.</p>
+                <p><b>Precautions</b></p>
+                <p>Vamana should always be done under expert supervision and should never be tried at home. It should be avoided during fever, weakness, and pregnancy.</p>
+                <p><b>Benefits of Vamana Therapy</b></p>
+                <p>It helps clear the respiratory system, improve skin health, enhance digestion, remove deep toxins, and balance Kapha dosha.</p>
+                <img id="vamanaStaticImg" src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
+            </div>
+
+            <button class="btn btn-danger w-100 mt-2" onclick="toggleBox('virechanaBox')">Virechana (Purgation Therapy)</button>
+            <div id="virechanaBox" class="dropdown-content therapy-detail">
+                <p><b>What is Virechana Therapy?</b></p>
+                <p>Virechana Therapy is a detoxification procedure in Ayurveda and one of the five main therapies of Panchakarma. Virechana means therapeutic purgation or controlled bowel cleansing. It helps remove excess Pitta dosha, including toxins related to heat, bile, and metabolism, from the body through the intestines.</p>
+                <p><b>Purpose of Virechana Therapy</b></p>
+                <p>Virechana helps detoxify the liver and intestines, remove excess Pitta, purify the blood, and improve digestion and metabolism.</p>
+                <p><b>Diseases Treated</b></p>
+                <p>It is useful in skin diseases such as acne, eczema, and psoriasis, liver disorders, acidity, ulcers, jaundice, chronic headaches, and other Pitta imbalance problems.</p>
+                <p><b>Requirements for Virechana Therapy</b></p>
+                <p><b>1. Patient Requirements:</b> The patient should have moderate strength and good digestion. It is generally not suitable for children, pregnant women, and weak or dehydrated persons.</p>
+                <p><b>2. Materials Required:</b> Medicated ghee, herbal purgatives such as Trivrit or castor oil, warm water, light food like khichdi or rice gruel, and proper toilet facilities.</p>
+                <p><b>3. Environment:</b> A clean and calm room is preferred, morning time is considered ideal, and the procedure should be supervised by an Ayurvedic doctor.</p>
+                <p><b>Procedure of Virechana Therapy</b></p>
+                <p><b>Step 1: Purva Karma (Preparation Phase)</b> Snehana or oleation is done with medicated ghee for 3 to 7 days. Swedana or sudation uses steam therapy to loosen toxins.</p>
+                <p><b>Step 2: Pradhana Karma (Main Procedure)</b> The patient is given herbal purgative medicine, which induces bowel movements. Frequent stools help expel toxins, while the doctor monitors the number of evacuations and signs of proper cleansing.</p>
+                <p><b>Step 3: Paschat Karma (Post-Therapy Care)</b> A light diet such as khichdi or soups is advised, along with rest, hydration, and a gradual return to normal food.</p>
+                <p><b>Precautions</b></p>
+                <p>Virechana must always be done under expert supervision. It should be avoided during fever, diarrhea, and pregnancy, and it should never be self-administered.</p>
+                <p><b>Benefits of Virechana Therapy</b></p>
+                <p>It helps cleanse the digestive system, improve skin health, balance Pitta dosha, detoxify the liver, and enhance metabolism.</p>
+                <img id="virechanaStaticImg" src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
+            </div>
+
+            <button class="btn btn-success w-100 mt-2" onclick="toggleBox('bastiBox')">Basti (Medicated Enema)</button>
+            <div id="bastiBox" class="dropdown-content therapy-detail">
+                <p><b>What is Basti Therapy?</b></p>
+                <p>Basti Therapy is one of the most important treatments in Ayurveda and a key procedure of Panchakarma. Basti means medicated enema therapy, where herbal oils or decoctions are introduced into the rectum to cleanse the colon and balance Vata dosha.</p>
+                <p><b>Purpose of Basti Therapy</b></p>
+                <p>Basti helps cleanse the large intestine, remove toxins from the body, balance Vata dosha, and nourish body tissues.</p>
+                <p><b>Diseases Treated</b></p>
+                <p>It is helpful in chronic constipation, arthritis, lower back pain, sciatica, neurological disorders, and digestive problems.</p>
+                <p><b>Requirements for Basti Therapy</b></p>
+                <p><b>1. Patient Requirements:</b> The patient should ideally have an empty stomach and remain relaxed and calm. It is generally not suitable for pregnant women, people with severe diarrhea, and very weak patients.</p>
+                <p><b>2. Materials Required:</b> Medicated oil such as herbal oil or Anu taila, or herbal decoction, along with enema equipment such as a Basti pot, enema bag, or catheter, plus lubricant, towels, and a bed.</p>
+                <p><b>3. Environment:</b> A clean, warm, and quiet room is preferred, and the therapy should be performed under the supervision of a trained Ayurvedic practitioner.</p>
+                <p><b>Types of Basti Therapy</b></p>
+                <p><b>Niruha Basti (Decoction Enema):</b> Herbal liquid is used mainly for detoxification.</p>
+                <p><b>Anuvasana Basti (Oil Enema):</b> Medicated oil is used mainly for nourishment and lubrication.</p>
+                <p><b>Procedure of Basti Therapy</b></p>
+                <p><b>Step 1: Purva Karma (Preparation)</b> Light oil massage or Abhyanga and mild steam therapy or Swedana are performed.</p>
+                <p><b>Step 2: Pradhana Karma (Main Procedure)</b> The patient lies on the left side, a lubricated catheter is inserted gently into the rectum, and medicated oil or decoction is introduced. The patient retains the medicine for a specific time.</p>
+                <p><b>Step 3: Paschat Karma (Post Care)</b> Natural evacuation is allowed, light food such as khichdi or soup is advised, and proper rest is important.</p>
+                <p><b>Precautions</b></p>
+                <p>Basti must be done by an expert. It should be avoided during diarrhea, fever, and bleeding disorders, and heavy meals should be avoided before and after treatment.</p>
+                <p><b>Benefits of Basti Therapy</b></p>
+                <p>It helps relieve constipation, reduce joint and back pain, improve digestion, strengthen the nervous system, and detoxify the colon.</p>
+                <img id="bastiStaticImg" src="images/Basti_Therapy.jpg" class="therapy-img" alt="Basti therapy">
+            </div>
+
+            <button class="btn btn-warning w-100 mt-2" onclick="toggleBox('nasyaBox')">Nasya (Nasal Therapy)</button>
+            <div id="nasyaBox" class="dropdown-content therapy-detail">
+                <p><b>What is Nasya Therapy?</b></p>
+                <p>Nasya Therapy is an important detoxification treatment in Ayurveda and one of the procedures in Panchakarma. Nasya means administration of medicine through the nose. It is mainly used to cleanse and treat disorders of the head, brain, and respiratory system.</p>
+                <p><b>Purpose of Nasya Therapy</b></p>
+                <p>Nasya helps clean the nasal passages, remove toxins from the head region, improve breathing, and enhance brain function and memory.</p>
+                <p><b>Diseases Treated</b></p>
+                <p>It is helpful in sinusitis, headache and migraine, cold and cough, allergies, hair fall, premature greying, and certain eye and ear disorders.</p>
+                <p><b>Requirements for Nasya Therapy</b></p>
+                <p><b>1. Patient Requirements:</b> The patient should be relaxed and calm, and the therapy should not be done immediately after meals. It may not be suitable for small children, pregnant women in some cases, and very weak patients.</p>
+                <p><b>2. Materials Required:</b> Medicated oil such as Anu taila, ghee, or herbal oil, a dropper or spoon, towel, warm water, and a pillow to tilt the head.</p>
+                <p><b>3. Environment:</b> A clean and peaceful room with warm temperature is preferred, and the procedure should be done under expert supervision.</p>
+                <p><b>Procedure of Nasya Therapy</b></p>
+                <p><b>Step 1: Purva Karma (Preparation)</b> Face massage with oil and steam inhalation or Swedana are done to open the nasal channels.</p>
+                <p><b>Step 2: Pradhana Karma (Main Procedure)</b> The patient lies down with the head tilted back. Drops of medicated oil are placed into the nostrils, the patient inhales gently, and mucus or toxins from the throat are spat out.</p>
+                <p><b>Step 3: Paschat Karma (Post Care)</b> Gargling with warm water is advised, followed by rest. Dust, cold air, and heavy food should be avoided.</p>
+                <p><b>Precautions</b></p>
+                <p>Nasya should be done by a trained practitioner. It should be avoided immediately after eating, during fever, and during severe cold congestion, and it should not be overused.</p>
+                <p><b>Benefits of Nasya Therapy</b></p>
+                <p>It helps clear sinus and nasal blockage, improve memory, strengthen hair roots, relieve headache, and enhance voice and vision.</p>
+                <img id="nasyaStaticImg" src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
+            </div>
+
+            <button class="btn btn-dark w-100 mt-2" onclick="toggleBox('raktaBox')">Raktamokshana (Blood Detox)</button>
+            <div id="raktaBox" class="dropdown-content therapy-detail">
+                <p><b>What is Rakta Mokshana Therapy?</b></p>
+                <p>Rakta Mokshana is a blood purification therapy in Ayurveda and one of the important cleansing procedures related to Panchakarma. It is used to remove impure blood and toxins from the bloodstream, especially in Pitta-related disorders.</p>
+                <p><b>Purpose of Rakta Mokshana</b></p>
+                <p>It helps purify the blood, remove toxins from the bloodstream, balance Pitta dosha, and improve skin health.</p>
+                <p><b>Diseases Treated</b></p>
+                <p>Rakta Mokshana is used in skin diseases such as acne, eczema, and psoriasis, abscesses and ulcers, gout, pigmentation disorders, certain cases of hypertension, and blood-related disorders.</p>
+                <p><b>Requirements for Rakta Mokshana</b></p>
+                <p><b>1. Patient Requirements:</b> The patient should be physically fit and stable. It is generally avoided in anemic people, very weak patients, pregnant women, and weak children or elderly individuals.</p>
+                <p><b>2. Materials Required:</b> Depending on the method, materials may include leeches for Jalaukavacharana, a sterile blade or scalpel for venesection, vacuum suction tools for cupping, along with cotton, gauze, antiseptic, and herbal medicines.</p>
+                <p><b>3. Environment:</b> A clean, hygienic, and sterile setup is required, and the therapy should be performed by a trained Ayurvedic doctor.</p>
+                <p><b>Methods of Rakta Mokshana</b></p>
+                <p><b>1. Jalaukavacharana (Leech Therapy):</b> Leeches are applied on the affected area and gently suck impure blood.</p>
+                <p><b>2. Siravyadha (Venesection):</b> A small incision is made in the vein for controlled blood removal.</p>
+                <p><b>3. Alabu (Cupping Method):</b> Vacuum suction is used to remove impure blood from the skin surface.</p>
+                <p><b>Procedure of Rakta Mokshana</b></p>
+                <p><b>Step 1: Purva Karma (Preparation)</b> Light oil massage or Abhyanga and mild steam therapy are done before the procedure.</p>
+                <p><b>Step 2: Pradhana Karma (Main Procedure)</b> The suitable method is selected, such as leech therapy, incision, or cupping, followed by controlled removal of blood with continuous monitoring.</p>
+                <p><b>Step 3: Paschat Karma (Post Care)</b> The wound is cleaned and dressed, herbal medicines may be applied, and rest with a light diet is advised.</p>
+                <p><b>Precautions</b></p>
+                <p>Rakta Mokshana must be done only by an expert. It should be avoided in anemia, pregnancy, and weak patients, and strict hygiene and sterilization must be maintained.</p>
+                <p><b>Benefits of Rakta Mokshana</b></p>
+                <p>It helps detoxify the blood, improve skin glow, reduce inflammation, support chronic skin problem management, and balance Pitta dosha.</p>
+                <img id="raktamokshanaStaticImg" src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+if(!localStorage.getItem("doctorProfiles")){
+    localStorage.setItem("doctorProfiles", "[]");
+}
+try{
+    const existingDoctorProfiles = JSON.parse(localStorage.getItem("doctorProfiles") || "[]");
+    const noProfiles = Array.isArray(existingDoctorProfiles) && existingDoctorProfiles.length === 0;
+    if(noProfiles){
+        localStorage.setItem("doctorProfiles", "[]");
+    }
+}catch(error){
+}
+
+let doshaChart = null;
+
+function openTerms(){
+    document.getElementById("termsModal").style.display="flex";
+}
+
+function closeTerms(){
+    document.getElementById("termsModal").style.display="none";
+}
+
+function showAIPopup(message,type="success"){
+    const popup=document.getElementById("aiPopup");
+    const msg=document.getElementById("aiMessage");
+    msg.innerText=message;
+    popup.className="ai-popup show " + type;
+
+    setTimeout(()=>{
+        popup.classList.remove("show");
+    },3000);
+}
+
+function normalizeEmail(value){
+    return value.trim().toLowerCase();
+}
+
+function isValidEmail(value){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function togglePasswordVisibility(fieldId, isVisible){
+    const input = document.getElementById(fieldId);
+    if(!input){
+        return;
+    }
+    input.type = isVisible ? "text" : "password";
+}
+
+function getDoctorProfiles(){
+    try{
+        const profiles = JSON.parse(localStorage.getItem("doctorProfiles") || "[]");
+        return Array.isArray(profiles) ? profiles : [];
+    }catch(error){
+        return [];
+    }
+}
+
+function saveDoctorProfiles(profiles){
+    localStorage.setItem("doctorProfiles", JSON.stringify(profiles));
+}
+
+function getDoctorMatchMeta(profile, issue, dosha, therapy){
+    const specialty = profile.specialty || "General Panchakarma";
+    let score = specialty === "General Panchakarma" ? 1 : 0;
+    let reason = "General Panchakarma support";
+
+    const issueMap = {
+        respiratory:{specialty:"Respiratory & Kapha Care", reason:"best fit for respiratory and Kapha complaints"},
+        digestive:{specialty:"Digestive & Pitta Care", reason:"best fit for digestion and Pitta-related complaints"},
+        joint:{specialty:"Vata & Pain Care", reason:"best fit for joint pain and Vata imbalance"},
+        sinus:{specialty:"ENT & Head Care", reason:"best fit for sinus, headache, and head-region complaints"},
+        skin:{specialty:"Skin & Blood Purification", reason:"best fit for skin-related conditions"},
+        blood:{specialty:"Skin & Blood Purification", reason:"best fit for blood purification concerns"},
+        general:{specialty:"General Panchakarma", reason:"good for general Panchakarma guidance"}
+    };
+
+    const mappedIssue = issueMap[issue];
+    if(mappedIssue && specialty === mappedIssue.specialty){
+        score += 4;
+        reason = mappedIssue.reason;
+    }
+
+    if(dosha === "Kapha" && specialty === "Respiratory & Kapha Care"){
+        score += 3;
+        reason = "matches Kapha imbalance and respiratory cleansing needs";
+    }
+    if(dosha === "Pitta" && specialty === "Digestive & Pitta Care"){
+        score += 3;
+        reason = "matches Pitta imbalance and digestive detox needs";
+    }
+    if(dosha === "Vata" && specialty === "Vata & Pain Care"){
+        score += 3;
+        reason = "matches Vata imbalance and pain management needs";
+    }
+
+    if(therapy.includes("Nasya") && specialty === "ENT & Head Care"){
+        score += 3;
+        reason = "matches Nasya-related ENT and head care";
+    }
+    if(therapy.includes("Rakta") && specialty === "Skin & Blood Purification"){
+        score += 3;
+        reason = "matches blood purification and skin care";
+    }
+    if(therapy.includes("Vamana") && specialty === "Respiratory & Kapha Care"){
+        score += 3;
+        reason = "matches Vamana support for Kapha and respiratory detox";
+    }
+    if(therapy.includes("Virechana") && specialty === "Digestive & Pitta Care"){
+        score += 3;
+        reason = "matches Virechana support for digestive and Pitta detox";
+    }
+    if(therapy.includes("Basti") && specialty === "Vata & Pain Care"){
+        score += 3;
+        reason = "matches Basti support for Vata and pain management";
+    }
+
+    return {score:score, reason:reason};
+}
+
+function getRecommendedDoctor(issue){
+    const ranked = getRankedDoctors(issue);
+    return ranked[0] || null;
+}
+
+function getRankedDoctors(issue){
+    const profiles = getDoctorProfiles();
+    if(profiles.length === 0){
+        return [];
+    }
+    const dosha = localStorage.getItem("finalDosha") || "";
+    const therapy = localStorage.getItem("therapy") || "";
+    return profiles
+    .map((profile)=>{
+        const match = getDoctorMatchMeta(profile, issue, dosha, therapy);
+        return {
+            profile:profile,
+            score:match.score,
+            reason:match.reason
+        };
+    })
+    .sort((a,b)=>b.score - a.score || a.profile.name.localeCompare(b.profile.name));
+}
+
+function updateDoctorRecommendation(){  
+    const issue = document.getElementById("patientIssue") ? document.getElementById("patientIssue").value : "";
+    const select = document.getElementById("doctorSelect");
+    const suggestedDoctorName = document.getElementById("suggestedDoctorName");
+    const suggestedDoctorReason = document.getElementById("suggestedDoctorReason");
+    const doctorMatchList = document.getElementById("doctorMatchList");
+    const manualDoctorHint = document.getElementById("manualDoctorHint");
+    const profiles = getDoctorProfiles();
+
+    if(!select){
+        return;
+    }
+
+    select.innerHTML = "";
+    if(doctorMatchList){
+        doctorMatchList.innerHTML = "";
+    }
+
+    if(profiles.length === 0){
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No doctor registered yet";
+        select.appendChild(option);
+        suggestedDoctorName.innerText = "No doctor available";
+        suggestedDoctorReason.innerText = "Register one or more doctor profiles first.";
+        if(manualDoctorHint){
+            manualDoctorHint.innerText = "Doctor selection will appear after doctor registration.";
+        }
+        if(doctorMatchList){
+            const empty = document.createElement("li");
+            empty.innerText = "No doctor profiles available.";
+            doctorMatchList.appendChild(empty);
+        }
+        return;
+    }
+
+    const rankedDoctors = getRankedDoctors(issue);
+    const recommendation = rankedDoctors[0] || null;
+
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = "Select doctor manually";
+    select.appendChild(placeholderOption);
+
+    rankedDoctors.forEach((rankedItem)=>{
+        const profile = rankedItem.profile;
+        const option = document.createElement("option");
+        option.value = profile.email;
+        option.textContent = profile.name + " - " + (profile.specialty || "General Panchakarma") + " (Score " + rankedItem.score + ")";
+        if(recommendation && profile.email === recommendation.profile.email){
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+
+    if(recommendation){
+        suggestedDoctorName.innerText = recommendation.profile.name + " (" + (recommendation.profile.specialty || "General Panchakarma") + ")";
+        suggestedDoctorReason.innerText = recommendation.reason;
+        if(manualDoctorHint){
+            manualDoctorHint.innerText = "System preselected the best doctor. You can still choose another doctor.";
+        }
+    }else{
+        suggestedDoctorName.innerText = "No doctor suggested yet";
+        suggestedDoctorReason.innerText = "Choose your health issue or complete analysis to get a recommendation.";
+        if(manualDoctorHint){
+            manualDoctorHint.innerText = "Choose doctor manually.";
+        }
+    }
+
+    if(doctorMatchList){
+        rankedDoctors.slice(0, 3).forEach((rankedItem, index)=>{
+            const li = document.createElement("li");
+            li.innerText =
+            (index + 1) + ". Dr. " + rankedItem.profile.name +
+            " (" + (rankedItem.profile.specialty || "General Panchakarma") + ") - " +
+            rankedItem.reason;
+            doctorMatchList.appendChild(li);
+        });
+    }
+}
+
+function showDoctorLoginForm(){
+    document.getElementById("doctorLoginForm").style.display = "block";
+    document.getElementById("doctorRegisterForm").style.display = "none";
+}
+
+function showDoctorRegisterForm(){
+    document.getElementById("doctorLoginForm").style.display = "none";
+    document.getElementById("doctorRegisterForm").style.display = "block";
+}
+
+function registerDoctor(){
+    const name = document.getElementById("doctorNameInput").value.trim();
+    const email = normalizeEmail(document.getElementById("doctorEmailInput").value);
+    const hospital = document.getElementById("doctorHospitalInput").value.trim();
+    const specialty = document.getElementById("doctorSpecialtyInput").value;
+    const password = document.getElementById("doctorPasswordInput").value;
+    const profiles = getDoctorProfiles();
+
+    if(name === "" || email === "" || hospital === "" || specialty === "" || password === ""){
+        showAIPopup("Enter doctor name, email, hospital, specialty, and password","error");
+        return;
+    }
+
+    if(!isValidEmail(email)){
+        showAIPopup("Enter a valid doctor email address","error");
+        return;
+    }
+
+    if(password.length < 6){
+        showAIPopup("Doctor password must be at least 6 characters","error");
+        return;
+    }
+
+    const alreadyExists = profiles.some((profile)=>normalizeEmail(profile.email || "") === email);
+    if(alreadyExists){
+        showAIPopup("Doctor email already registered","warning");
+        return;
+    }
+
+    profiles.push({
+        name:name,
+        email:email,
+        password:password,
+        hospital:hospital,
+        specialty:specialty,
+        createdAt:new Date().toISOString()
+    });
+    saveDoctorProfiles(profiles);
+    document.getElementById("doctorNameInput").value = "";
+    document.getElementById("doctorEmailInput").value = "";
+    document.getElementById("doctorHospitalInput").value = "";
+    document.getElementById("doctorSpecialtyInput").value = "";
+    document.getElementById("doctorPasswordInput").value = "";
+    document.getElementById("doctorEmail").value = email;
+    showAIPopup("Doctor registered successfully. You can login now.","success");
+    showDoctorLoginForm();
+    resetDoctorLoginForm();
+}
+
+function setButtonState(id, disabled, label){
+    const button = document.getElementById(id);
+    if(!button){
+        return;
+    }
+
+    button.disabled = disabled;
+    if(label){
+        button.innerText = label;
+    }
+}
+
+const patientPages = ["dashboardPage", "symptomPage", "resultPage", "appointmentPage", "panchakarmaPage"];
+const pagesWithSidebar = [...patientPages];
+const pagesInsidePatientLayout = [...patientPages, "doctorPage"];
+
+function updateGoogleStatus(message){
+    const status = document.getElementById("googleLoginStatus");
+    if(status){
+        status.innerText = message;
+    }
+}
+
+function isFirebaseConfigured(){
+    return !!(
+        window.firebase &&
+        firebase.apps &&
+        firebase.apps.length &&
+        firebaseConfig.apiKey !== "YOUR_API_KEY" &&
+        firebaseConfig.authDomain !== "YOUR_PROJECT.firebaseapp.com"
+    );
+}
+
+async function signInWithGoogle(){
+    if(!isFirebaseConfigured()){
+        updateGoogleStatus("Fill your real Firebase config first, then try Google login again.");
+        showAIPopup("Firebase config is still using placeholder values","warning");
+        return;
+    }
+
+    try{
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({
+            prompt:"select_account"
+        });
+
+        const result = await firebase.auth().signInWithPopup(provider);
+        const user = result.user;
+
+        localStorage.setItem("patientName", user.displayName || user.email || "Google User");
+        localStorage.setItem("email", user.email || "");
+        localStorage.setItem("age", "");
+        localStorage.setItem("progress", localStorage.getItem("progress") || "Not Started");
+        localStorage.setItem("googleProfile", JSON.stringify({
+            name:user.displayName || "",
+            email:user.email || "",
+            picture:user.photoURL || "",
+            uid:user.uid || ""
+        }));
+
+        updateGoogleStatus("Signed in with Firebase Google authentication.");
+        showAIPopup("Google login successful","success");
+        setTimeout(()=>{
+            showPage("dashboardPage");
+        },500);
+    }catch(error){
+        console.error(error);
+        updateGoogleStatus(error.message || "Google login failed.");
+        showAIPopup("Google login failed","error");
+    }
+}
+
+function showLogin(){
+    document.getElementById("loginForm").style.display="block";
+    document.getElementById("registerForm").style.display="none";
+    updateGoogleStatus("Continue with Google is ready after your Firebase config is filled and Google sign-in is enabled.");
+}
+
+function showRegister(){
+    document.getElementById("loginForm").style.display="none";
+    document.getElementById("registerForm").style.display="block";
+}
+
+function resetDoctorLoginForm(){
+    const doctorEmails = getDoctorProfiles().map((profile)=>profile.email).filter(Boolean);
+    document.getElementById("doctorEmailHint").innerText = doctorEmails.length ? doctorEmails.join(", ") : "No doctor registered yet";
+    document.getElementById("doctorLoginForm").style.display = "block";
+    document.getElementById("doctorRegisterForm").style.display = "none";
+}
+
+function showPage(page, addToHistory=true){
+    const pageElement = document.getElementById(page);
+    const siteHero = document.getElementById("siteHero");
+    if(!pageElement){
+        showAIPopup("Page not found","error");
+        return;
+    }
+
+    if(addToHistory){
+        try{
+            window.history.pushState({page:page}, "", "#" + page);
+        }catch(error){
+        }
+    }
+
+    document.querySelectorAll(".page").forEach((section)=>{
+        section.style.display="none";
+    });
+    pageElement.style.display="block";
+
+    const patientLayout = document.getElementById("patientLayout");
+    const isPatientPage = patientPages.includes(page);
+    if(patientLayout){
+        patientLayout.style.display = pagesInsidePatientLayout.includes(page) ? "block" : "none";
+        patientLayout.classList.toggle("doctor-mode", page === "doctorPage");
+    }
+    if(siteHero){
+        const hideHeroPages = pagesInsidePatientLayout.includes(page);
+        siteHero.style.display = hideHeroPages ? "none" : "block";
+    }
+
+    document.querySelectorAll(".sidebar-link[data-page]").forEach((link)=>{
+        link.classList.toggle("is-active", link.getAttribute("data-page") === page);
+    });
+
+    if(page==="dashboardPage"){
+        document.getElementById("patientName").innerText = localStorage.getItem("patientName") || "Patient";
+    }
+
+    if(page==="resultPage"){
+        loadResult();
+    }
+
+    if(page==="appointmentPage"){
+        updatePatientStatus();
+        updateDoctorRecommendation();
+    }
+
+    if(page==="doctorLoginPage"){
+        resetDoctorLoginForm();
+    }
+
+    if(page==="doctorPage"){
+        if(localStorage.getItem("doctorLoggedIn")!=="true"){
+            showAIPopup("Access denied. Doctor login required.","error");
+            showPage("doctorLoginPage");
+            return;
+        }
+        loadAppointments();
+        document.getElementById("doctorDisplayName").innerText = localStorage.getItem("doctorName") || "Doctor";
+        document.getElementById("doctorDisplaySpecialty").innerText = localStorage.getItem("doctorSpecialty") || "Not assigned";
+    }
+}
+
+window.onpopstate = function(event){
+    if(event.state && event.state.page){
+        showPage(event.state.page,false);
+    }
+};
+
+function register(){
+    const terms=document.getElementById("termsCheck").checked;
+    const name=document.getElementById("nameInput").value.trim();
+    const email=normalizeEmail(document.getElementById("emailInput").value);
+    const age=document.getElementById("ageInput").value.trim();
+    const password=document.getElementById("passwordInput").value;
+
+    if(!terms){
+        showAIPopup("Please accept Terms & Conditions","error");
+        return;
+    }
+
+    if(name==="" || email==="" || age==="" || password===""){
+        showAIPopup("Please fill all fields","error");
+        return;
+    }
+
+    if(!isValidEmail(email)){
+        showAIPopup("Enter a valid email address","error");
+        return;
+    }
+
+    if(isNaN(age) || Number(age) <= 0){
+        showAIPopup("Enter a valid age","error");
+        return;
+    }
+
+    if(password.length < 6){
+        showAIPopup("Password must be at least 6 characters","error");
+        return;
+    }
+
+    if(localStorage.getItem("user_" + email)){
+        showAIPopup("Account already exists. Please login.","warning");
+        return;
+    }
+
+    localStorage.setItem("user_" + email, JSON.stringify({
+        name:name,
+        email:email,
+        age:age,
+        password:password
+    }));
+
+    document.getElementById("loginName").value = name;
+    document.getElementById("loginEmail").value = email;
+    document.getElementById("loginPassword").value = password;
+    showAIPopup("Registration successful","success");
+
+    setTimeout(()=>{
+        showLogin();
+    },500);
+}
+
+function verifyAndStoreUser(email){
+    const user = JSON.parse(localStorage.getItem("user_" + email));
+    if(!user){
+        showAIPopup("User not found. Please register again.","error");
+        return null;
+    }
+
+    localStorage.setItem("patientName",user.name);
+    localStorage.setItem("email",user.email || "");
+    localStorage.setItem("age",user.age);
+    localStorage.setItem("progress", localStorage.getItem("progress") || "Not Started");
+    return user;
+}
+
+function login(){
+    const name = document.getElementById("loginName").value.trim();
+    const email = normalizeEmail(document.getElementById("loginEmail").value);
+    const password = document.getElementById("loginPassword").value;
+
+    if(name === "" || email === "" || password === ""){
+        showAIPopup("Enter name, email, and password","error");
+        return;
+    }
+
+    if(!isValidEmail(email)){
+        showAIPopup("Enter a valid email address","error");
+        return;
+    }
+
+    const storedUser = localStorage.getItem("user_" + email);
+    if(!storedUser){
+        showAIPopup("Account not found. Please register first.","error");
+        return;
+    }
+
+    const user = JSON.parse(storedUser);
+    if(user.name.trim().toLowerCase() !== name.toLowerCase()){
+        showAIPopup("Name does not match this email","error");
+        return;
+    }
+    if((user.password || "") !== password){
+        showAIPopup("Password is incorrect","error");
+        return;
+    }
+
+    const loggedInUser = verifyAndStoreUser(email);
+    if(!loggedInUser){
+        return;
+    }
+
+    showAIPopup("Login successful","success");
+    setTimeout(()=>{
+        showPage("dashboardPage");
+    },500);
+}
+
+function doctorLogin(){
+    const email = normalizeEmail(document.getElementById("doctorEmail").value);
+    const password = document.getElementById("doctorPassword").value;
+    const doctorProfiles = getDoctorProfiles();
+
+    if(doctorProfiles.length === 0){
+        showAIPopup("No doctor is registered yet. Use Doctor Register first.","warning");
+        showDoctorRegisterForm();
+        return;
+    }
+
+    if(email === "" || password === ""){
+        showAIPopup("Enter doctor email and password","error");
+        return;
+    }
+
+    if(!isValidEmail(email)){
+        showAIPopup("Enter a valid doctor email address","error");
+        return;
+    }
+
+    const doctorProfile = doctorProfiles.find((profile)=>normalizeEmail(profile.email || "") === email);
+    if(!doctorProfile){
+        showAIPopup("This doctor email is not authorized for login","error");
+        return;
+    }
+
+    if((doctorProfile.password || "") !== password){
+        showAIPopup("Doctor password is incorrect","error");
+        return;
+    }
+
+    localStorage.setItem("doctorLoggedIn","true");
+    localStorage.setItem("doctorName", doctorProfile.name || "");
+    localStorage.setItem("doctorEmail", doctorProfile.email || "");
+    localStorage.setItem("doctorSpecialty", doctorProfile.specialty || "General Panchakarma");
+    showAIPopup("Doctor login successful","success");
+    setTimeout(()=>{
+        showPage("doctorPage");
+    },500);
+}
+
+function doctorLogout(){
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if(!confirmLogout){
+        return;
+    }
+
+    localStorage.removeItem("doctorLoggedIn");
+    localStorage.removeItem("doctorName");
+    localStorage.removeItem("doctorEmail");
+    localStorage.removeItem("doctorSpecialty");
+    showAIPopup("Doctor logged out","warning");
+    setTimeout(()=>{
+        showPage("loginPage");
+    },500);
+}
+
+function bookAppointment(){
+    const date=document.getElementById("appointDate").value;
+    const time=document.getElementById("appointTime").value;
+    const issue=document.getElementById("patientIssue").value;
+    let doctorEmail=document.getElementById("doctorSelect").value;
+    const patient=localStorage.getItem("patientName");
+    const profiles=getDoctorProfiles();
+
+    if(doctorEmail === ""){
+        const recommendation = getRecommendedDoctor(issue);
+        if(recommendation){
+            doctorEmail = recommendation.profile.email;
+        }
+    }
+
+    const selectedDoctor=profiles.find((profile)=>profile.email===doctorEmail);
+
+    if(!patient){
+        showAIPopup("Please login first","error");
+        return;
+    }
+
+    if(issue==="" || doctorEmail==="" || !selectedDoctor){
+        showAIPopup("Please choose health issue and doctor","error");
+        return;
+    }
+
+    if(date==="" || time===""){
+        showAIPopup("Please select date and time","error");
+        return;
+    }
+
+    const appointments=JSON.parse(localStorage.getItem("appointments")) || [];
+    appointments.push({
+        id:Date.now(),
+        patient:patient,
+        issue:issue,
+        doctorName:selectedDoctor.name,
+        doctorEmail:selectedDoctor.email,
+        doctorSpecialty:selectedDoctor.specialty || "General Panchakarma",
+        dosha:localStorage.getItem("finalDosha") || "Not analyzed",
+        therapy:localStorage.getItem("therapy") || "Not assigned",
+        progress:localStorage.getItem("progress") || "Not Started",
+        date:date,
+        time:time,
+        status:"Pending",
+        suggestedBySystem:document.getElementById("suggestedDoctorName").innerText.includes(selectedDoctor.name)
+    });
+    localStorage.setItem("appointments",JSON.stringify(appointments));
+
+    document.getElementById("appointStatus").innerText = "Appointment booked with Dr. " + selectedDoctor.name + " (" + (selectedDoctor.specialty || "General Panchakarma") + ")";
+    showAIPopup("Appointment booked","success");
+}
+
+function updatePatientStatus(){
+    const appointments=JSON.parse(localStorage.getItem("appointments")) || [];
+    const patient=localStorage.getItem("patientName");
+    const latest=[...appointments].reverse().find((appointment)=>appointment.patient===patient);
+    document.getElementById("appointStatus").innerText = latest ? (latest.status + " with Dr. " + (latest.doctorName || "Assigned Doctor")) : "No appointment booked";
+}
+
+function loadAppointments(){
+    const list=document.getElementById("appointmentList");
+    const appointments=JSON.parse(localStorage.getItem("appointments")) || [];
+    const doctorEmail=localStorage.getItem("doctorEmail");
+    list.innerHTML="";
+
+    const doctorAppointments = appointments.filter((appointment)=>appointment.doctorEmail===doctorEmail);
+
+    const latestAppointment = doctorAppointments.length ? doctorAppointments[doctorAppointments.length - 1] : null;
+    document.getElementById("docPatient").innerText = latestAppointment ? latestAppointment.patient : "Not available";
+    document.getElementById("docDosha").innerText = latestAppointment ? (latestAppointment.dosha || "Not analyzed") : "Not analyzed";
+    document.getElementById("docTherapy").innerText = latestAppointment ? (latestAppointment.therapy || "Not assigned") : "Not assigned";
+    document.getElementById("docProgress").innerText = latestAppointment ? (latestAppointment.progress || "Not Started") : "Not Started";
+
+    if(doctorAppointments.length===0){
+        const empty=document.createElement("li");
+        empty.className="list-group-item";
+        empty.innerText="No appointments for this doctor yet.";
+        list.appendChild(empty);
+        return;
+    }
+
+    doctorAppointments.forEach((appointment)=>{
+        const item=document.createElement("li");
+        item.className="list-group-item";
+        item.innerHTML =
+        "<b>" + appointment.patient + "</b><br>" +
+        "Issue: " + (appointment.issue || "General consultation") + "<br>" +
+        "Booked via: " + (appointment.suggestedBySystem ? "System suggestion" : "Manual doctor choice") + "<br>" +
+        "Date: " + appointment.date + " | Time: " + appointment.time + "<br>" +
+        "Status: <b>" + (appointment.status || "Pending") + "</b>";
+        list.appendChild(item);
+    });
+}
+
+function toggleDarkMode(){
+    document.body.classList.toggle("dark-mode");
+    localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+}
+
+function logout(){
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if(!confirmLogout){
+        return;
+    }
+
+    localStorage.removeItem("patientName");
+    localStorage.removeItem("email");
+    localStorage.removeItem("age");
+    localStorage.removeItem("googleProfile");
+    showLogin();
+    showPage("loginPage");
+}
+
+function toggleBox(id){
+    document.getElementById(id).classList.toggle("active");
+}
+
+function analyze(){
+    document.getElementById("loader").style.display="block";
+
+    setTimeout(()=>{
+        const v=document.querySelectorAll('input[name="vata"]:checked').length;
+        const p=document.querySelectorAll('input[name="pitta"]:checked').length;
+        const k=document.querySelectorAll('input[name="kapha"]:checked').length;
+
+        localStorage.setItem("vata",v);
+        localStorage.setItem("pitta",p);
+        localStorage.setItem("kapha",k);
+
+        let dosha="Kapha";
+        if(v>p && v>k) dosha="Vata";
+        else if(p>v && p>k) dosha="Pitta";
+
+        localStorage.setItem("finalDosha",dosha);
+        document.getElementById("loader").style.display="none";
+        showPage("resultPage");
+    },900);
+}
+
+function loadResult(){
+    const dosha=localStorage.getItem("finalDosha") || "Not analyzed";
+    let therapy="";
+    let diet="";
+    let description="";
+    let image="";
+
+    if(dosha==="Vata"){
+        therapy="Basti Therapy (Medicated Enema)";
+        diet="Warm foods, oil massage, proper sleep";
+        description="Basti supports Vata balance, nourishes tissues, and helps improve digestion and nervous system stability.";
+        image="images/Basti_Therapy.jpg";
+    }else if(dosha==="Pitta"){
+        therapy="Virechana Therapy (Purgation)";
+        diet="Cooling foods, avoid spicy and oily meals";
+        description="Virechana helps reduce excess Pitta, especially in acidity, skin irritation, and heat-related imbalance.";
+        image="images/Virechana_therapy.jpg";
+    }else if(dosha==="Kapha"){
+        therapy="Vamana Therapy (Therapeutic Emesis)";
+        diet="Light meals, regular exercise, and less heavy food";
+        description="Vamana is traditionally used for Kapha imbalance and is often associated with respiratory and sluggishness concerns.";
+        image="images/Vamana_therapy.jpg";
+    }else{
+        therapy="Complete the symptom analysis to see recommendations";
+        diet="Balanced routine and light meals";
+        description="Your therapy recommendation will appear after the analysis step.";
+        image="images/logo.png";
+    }
+
+    localStorage.setItem("therapy",therapy);
+    document.getElementById("doshaText").innerText=dosha;
+    document.getElementById("therapyText").innerText=therapy;
+    document.getElementById("dietText").innerText=diet;
+    document.getElementById("therapyDescription").innerText=description;
+    document.getElementById("therapyImage").src=image;
+    document.getElementById("progressText").innerText = localStorage.getItem("progress") || "Not Started";
+
+    createChart();
+}
+
+function createChart(){
+    const v=+localStorage.getItem("vata") || 0;
+    const p=+localStorage.getItem("pitta") || 0;
+    const k=+localStorage.getItem("kapha") || 0;
+
+    if(doshaChart){
+        doshaChart.destroy();
+    }
+
+    doshaChart = new Chart(document.getElementById("chartCanvas"),{
+        type:"pie",
+        options:{ responsive:true, maintainAspectRatio:false },
+        data:{
+            labels:["Vata","Pitta","Kapha"],
+            datasets:[{
+                data:[v,p,k],
+                backgroundColor:["#43a047","#ef5350","#42a5f5"]
+            }]
+        }
+    });
+}
+
+function completeTreatment(){
+    localStorage.setItem("progress","Completed");
+    loadResult();
+}
+
+function downloadPDF(){
+    const { jsPDF } = window.jspdf;
+    const doc=new jsPDF();
+    doc.text("E-Panchakarma Report",20,20);
+    doc.text("Patient: " + (localStorage.getItem("patientName") || "N/A"),20,40);
+    doc.text("Dosha: " + (localStorage.getItem("finalDosha") || "N/A"),20,50);
+    doc.text("Therapy: " + (localStorage.getItem("therapy") || "N/A"),20,60);
+    doc.save("E-Panchakarma-Report.pdf");
+}
+
+if(localStorage.getItem("darkMode")==="true"){
+    document.body.classList.add("dark-mode");
+}
+
+showLogin();
+showPage("loginPage", false);
+</script>
+<script>
+/* Backend API override layer: keeps existing UI, replaces localStorage workflows */
+(function(){
+    const ASSET_BASE = new URL("./images/", window.location.href);
+    function assetUrl(fileName){
+        return new URL(fileName, ASSET_BASE).href;
+    }
+
+    function setImageWithFallback(elementId, fileName){
+        const img = document.getElementById(elementId);
+        if(!img){ return; }
+        img.onerror = function(){
+            this.onerror = null;
+            this.src = assetUrl("logo.png");
+        };
+        img.src = assetUrl(fileName);
+    }
+
+    function setupTherapyStaticImages(){
+        setImageWithFallback("vamanaStaticImg", "Vamana_therapy.jpg");
+        setImageWithFallback("virechanaStaticImg", "Virechana_therapy.jpg");
+        setImageWithFallback("bastiStaticImg", "Basti_Therapy.jpg");
+        setImageWithFallback("nasyaStaticImg", "Nasya_therapy.jpg");
+        setImageWithFallback("raktamokshanaStaticImg", "Raktamokshana_therapy.jpg");
+    }
+
+    const API_BASE = (() => {
+        const saved = localStorage.getItem("ep_api_base");
+        if(saved){ return saved; }
+        if(window.location.protocol === "file:"){ return "http://127.0.0.1:5000"; }
+        const host = window.location.hostname || "127.0.0.1";
+        if(host === "localhost" || host === "127.0.0.1"){ return "http://127.0.0.1:5000"; }
+        return window.location.protocol + "//" + host + ":5000";
+    })();
+    let backendWarningShown = false;
+    const state = {
+        patientToken: localStorage.getItem("ep_patient_token") || "",
+        doctorToken: localStorage.getItem("ep_doctor_token") || "",
+        patient: JSON.parse(localStorage.getItem("ep_patient_profile") || "null"),
+        doctor: JSON.parse(localStorage.getItem("ep_doctor_profile") || "null"),
+        analysis: JSON.parse(localStorage.getItem("ep_last_analysis") || "null"),
+        progress: localStorage.getItem("ep_progress") || "Not Started"
+    };
+
+    function persist(){
+        if(state.patientToken){ localStorage.setItem("ep_patient_token", state.patientToken); } else { localStorage.removeItem("ep_patient_token"); }
+        if(state.doctorToken){ localStorage.setItem("ep_doctor_token", state.doctorToken); } else { localStorage.removeItem("ep_doctor_token"); }
+        if(state.patient){ localStorage.setItem("ep_patient_profile", JSON.stringify(state.patient)); } else { localStorage.removeItem("ep_patient_profile"); }
+        if(state.doctor){ localStorage.setItem("ep_doctor_profile", JSON.stringify(state.doctor)); } else { localStorage.removeItem("ep_doctor_profile"); }
+        if(state.analysis){ localStorage.setItem("ep_last_analysis", JSON.stringify(state.analysis)); } else { localStorage.removeItem("ep_last_analysis"); }
+        localStorage.setItem("ep_progress", state.progress || "Not Started");
+    }
+
+    async function api(path, method="GET", body=null, authType=""){
+        const headers = {"Content-Type":"application/json"};
+        const token = authType === "doctor" ? state.doctorToken : state.patientToken;
+        if(authType && token){ headers.Authorization = "Bearer " + token; }
+        let res;
+        try{
+            res = await fetch(API_BASE + path, {
+                method:method,
+                headers:headers,
+                body:body ? JSON.stringify(body) : undefined
+            });
+        }catch(error){
+            throw new Error("Cannot reach backend at " + API_BASE + ". Start backend using: python app.py");
+        }
+        let data = {};
+        try{ data = await res.json(); }catch(error){}
+        if(!res.ok){ throw new Error(data.error || data.message || ("Request failed: " + res.status)); }
+        return data;
+    }
+
+    async function checkBackendHealth(){
+        try{
+            const res = await fetch(API_BASE + "/health", {method:"GET"});
+            if(!res.ok){
+                throw new Error("Health check failed");
+            }
+            updateGoogleStatus("Backend connected. Register/login is ready.");
+        }catch(error){
+            if(!backendWarningShown){
+                backendWarningShown = true;
+                showAIPopup("Backend API not running at " + API_BASE + ". Start it with: python app.py","warning");
+            }
+            updateGoogleStatus("Backend is offline. Start backend with: python app.py");
+        }
+    }
+
+    function checkedSymptoms(name){
+        return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked'))
+        .map((el)=>el.parentElement ? el.parentElement.textContent.trim() : (el.value || ""));
+    }
+
+    function therapyImage(therapy){
+        if((therapy || "").includes("Basti")) return assetUrl("Basti_Therapy.jpg");
+        if((therapy || "").includes("Virechana")) return assetUrl("Virechana_therapy.jpg");
+        if((therapy || "").includes("Vamana")) return assetUrl("Vamana_therapy.jpg");
+        return assetUrl("logo.png");
+    }
+
+    async function refreshDoctorHint(){
+        const hint = document.getElementById("doctorEmailHint");
+        if(!hint){ return; }
+        try{
+            const doctors = await api("/api/doctors");
+            hint.innerText = doctors.length ? doctors.map((d)=>d.email).join(", ") : "No doctor registered yet";
+        }catch(error){
+            hint.innerText = "Unable to load doctors";
+        }
+    }
+
+    window.showLogin = function(){
+        document.getElementById("loginForm").style.display="block";
+        document.getElementById("registerForm").style.display="none";
+        updateGoogleStatus("Backend API mode active. Google login is enabled through backend.");
+    };
+
+    window.showRegister = function(){
+        document.getElementById("loginForm").style.display="none";
+        document.getElementById("registerForm").style.display="block";
+    };
+
+    async function finishGoogleBackendLogin(result, userType="patient"){
+        localStorage.removeItem("ep_google_auth_role");
+        let googleIdToken = "";
+        if(result && result.credential && result.credential.idToken){
+            googleIdToken = result.credential.idToken;
+        }
+        if(!googleIdToken && result && result.user && result.user.getIdToken){
+            googleIdToken = await result.user.getIdToken();
+        }
+        if(!googleIdToken){
+            throw new Error("Unable to retrieve Google ID token");
+        }
+        const endpoint = userType === "doctor" ? "/api/auth/doctor/google" : "/api/auth/google";
+        const data = await api(endpoint,"POST",{id_token:googleIdToken});
+        if(userType === "doctor"){
+            state.doctorToken = data.session.token;
+            state.doctor = data.doctor;
+            localStorage.setItem("doctorLoggedIn","true");
+            localStorage.setItem("doctorName", data.doctor.name || "");
+            localStorage.setItem("doctorEmail", data.doctor.email || "");
+            localStorage.setItem("doctorSpecialty", data.doctor.specialty || "General Panchakarma");
+        }else{
+            state.patientToken = data.session.token;
+            state.patient = data.patient;
+            state.analysis = null;
+            state.progress = "Not Started";
+            localStorage.setItem("patientName", data.patient.name || "");
+            localStorage.setItem("email", data.patient.email || "");
+            localStorage.setItem("age", String(data.patient.age || ""));
+        }
+        persist();
+        updateGoogleStatus((userType === "doctor" ? "Doctor" : "Patient") + " Google login successful via backend.");
+        showAIPopup((userType === "doctor" ? "Doctor" : "Patient") + " Google login successful","success");
+        showPage(userType === "doctor" ? "doctorPage" : "dashboardPage");
+    }
+
+    async function handleGoogleRedirectResult(){
+        if(!(window.firebase && firebase.apps && firebase.apps.length)){ return; }
+        try{
+            const result = await firebase.auth().getRedirectResult();
+            if(result && result.user){
+                const redirectRole = localStorage.getItem("ep_google_auth_role") || "patient";
+                localStorage.removeItem("ep_google_auth_role");
+                await finishGoogleBackendLogin(result, redirectRole === "doctor" ? "doctor" : "patient");
+            }
+        }catch(error){
+            updateGoogleStatus(error.message || "Google redirect login failed.");
+            showAIPopup(error.message || "Google redirect login failed","error");
+        }
+    }
+
+    async function startGoogleSignIn(userType){
+        if(!(window.location.protocol === "http:" || window.location.protocol === "https:")){
+            const msg = "Open this app via http://localhost (not file://). Run: python -m http.server 5500";
+            updateGoogleStatus(msg);
+            showAIPopup(msg,"error");
+            return;
+        }
+        if(!(window.firebase && firebase.apps && firebase.apps.length)){
+            updateGoogleStatus("Firebase config missing. Add valid Firebase config to use Google login.");
+            showAIPopup("Google login setup incomplete: Firebase config missing.","error");
+            return;
+        }
+        const isDoctor = userType === "doctor";
+        const buttonId = isDoctor ? "doctorGoogleLoginBtn" : "googleLoginBtn";
+        const defaultLabel = "Continue with Google";
+        setButtonState(buttonId, true, "Connecting...");
+        try{
+            localStorage.setItem("ep_google_auth_role", isDoctor ? "doctor" : "patient");
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({ prompt:"select_account" });
+            const result = await firebase.auth().signInWithPopup(provider);
+            await finishGoogleBackendLogin(result, isDoctor ? "doctor" : "patient");
+        }catch(error){
+            if(error && (error.code === "auth/popup-blocked" || error.code === "auth/popup-closed-by-user")){
+                try{
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    provider.setCustomParameters({ prompt:"select_account" });
+                    updateGoogleStatus("Popup blocked. Redirecting to Google sign-in...");
+                    showAIPopup("Popup blocked. Continuing with redirect sign-in.","warning");
+                    await firebase.auth().signInWithRedirect(provider);
+                    return;
+                }catch(redirectError){
+                    localStorage.removeItem("ep_google_auth_role");
+                    updateGoogleStatus(redirectError.message || "Google redirect login failed.");
+                    showAIPopup(redirectError.message || "Google redirect login failed","error");
+                    return;
+                }
+            }
+            localStorage.removeItem("ep_google_auth_role");
+            updateGoogleStatus(error.message || "Google login failed.");
+            showAIPopup(error.message || "Google login failed","error");
+        }finally{
+            setButtonState(buttonId, false, defaultLabel);
+        }
+    }
+
+    window.signInWithGoogle = async function(){
+        await startGoogleSignIn("patient");
+    };
+
+    window.signInDoctorWithGoogle = async function(){
+        await startGoogleSignIn("doctor");
+    };
+
+    window.resetDoctorLoginForm = async function(){
+        document.getElementById("doctorLoginForm").style.display = "block";
+        document.getElementById("doctorRegisterForm").style.display = "none";
+        await refreshDoctorHint();
+    };
+
+    window.register = async function(){
+        const terms=document.getElementById("termsCheck").checked;
+        const name=document.getElementById("nameInput").value.trim();
+        const email=normalizeEmail(document.getElementById("emailInput").value);
+        const age=document.getElementById("ageInput").value.trim();
+        const password=document.getElementById("passwordInput").value;
+        if(!terms){ showAIPopup("Please accept Terms & Conditions","error"); return; }
+        if(name==="" || email==="" || age==="" || password===""){ showAIPopup("Please fill all fields","error"); return; }
+        if(!isValidEmail(email)){ showAIPopup("Enter a valid email address","error"); return; }
+        if(isNaN(age) || Number(age) <= 0){ showAIPopup("Enter a valid age","error"); return; }
+        if(password.length < 6){ showAIPopup("Password must be at least 6 characters","error"); return; }
+        try{
+            const data = await api("/api/auth/patient/register","POST",{name:name,email:email,age:Number(age),password:password});
+            state.patientToken = data.session.token;
+            state.patient = {id:data.session.user_id,name:name,email:email,age:Number(age)};
+            state.analysis = null;
+            state.progress = "Not Started";
+            localStorage.setItem("patientName", name);
+            localStorage.setItem("email", email);
+            localStorage.setItem("age", String(age));
+            persist();
+            showAIPopup("Registration successful","success");
+            showPage("dashboardPage");
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.login = async function(){
+        const name = document.getElementById("loginName").value.trim();
+        const email = normalizeEmail(document.getElementById("loginEmail").value);
+        const password = document.getElementById("loginPassword").value;
+        if(name==="" || email==="" || password===""){ showAIPopup("Enter name, email, and password","error"); return; }
+        if(!isValidEmail(email)){ showAIPopup("Enter a valid email address","error"); return; }
+        try{
+            const data = await api("/api/auth/patient/login","POST",{email:email,password:password});
+            if((data.patient.name || "").trim().toLowerCase() !== name.toLowerCase()){
+                showAIPopup("Name does not match this email","error");
+                return;
+            }
+            state.patientToken = data.session.token;
+            state.patient = data.patient;
+            localStorage.setItem("patientName", data.patient.name || "");
+            localStorage.setItem("email", data.patient.email || "");
+            localStorage.setItem("age", String(data.patient.age || ""));
+            persist();
+            showAIPopup("Login successful","success");
+            showPage("dashboardPage");
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.registerDoctor = async function(){
+        const name = document.getElementById("doctorNameInput").value.trim();
+        const email = normalizeEmail(document.getElementById("doctorEmailInput").value);
+        const hospital = document.getElementById("doctorHospitalInput").value.trim();
+        const specialty = document.getElementById("doctorSpecialtyInput").value;
+        const password = document.getElementById("doctorPasswordInput").value;
+        if(name==="" || email==="" || hospital==="" || specialty==="" || password===""){ showAIPopup("Enter doctor name, email, hospital, specialty, and password","error"); return; }
+        if(!isValidEmail(email)){ showAIPopup("Enter a valid doctor email address","error"); return; }
+        if(password.length < 6){ showAIPopup("Doctor password must be at least 6 characters","error"); return; }
+        try{
+            await api("/api/auth/doctor/register","POST",{name:name,email:email,hospital:hospital,specialty:specialty,password:password});
+            showAIPopup("Doctor registered successfully","success");
+            document.getElementById("doctorNameInput").value = "";
+            document.getElementById("doctorEmailInput").value = "";
+            document.getElementById("doctorHospitalInput").value = "";
+            document.getElementById("doctorSpecialtyInput").value = "";
+            document.getElementById("doctorPasswordInput").value = "";
+            document.getElementById("doctorEmail").value = email;
+            showDoctorLoginForm();
+            await refreshDoctorHint();
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.doctorLogin = async function(){
+        const email = normalizeEmail(document.getElementById("doctorEmail").value);
+        const password = document.getElementById("doctorPassword").value;
+        if(email==="" || password===""){ showAIPopup("Enter doctor email and password","error"); return; }
+        if(!isValidEmail(email)){ showAIPopup("Enter a valid doctor email address","error"); return; }
+        try{
+            const data = await api("/api/auth/doctor/login","POST",{email:email,password:password});
+            state.doctorToken = data.session.token;
+            state.doctor = data.doctor;
+            localStorage.setItem("doctorLoggedIn","true");
+            localStorage.setItem("doctorName", data.doctor.name || "");
+            localStorage.setItem("doctorEmail", data.doctor.email || "");
+            localStorage.setItem("doctorSpecialty", data.doctor.specialty || "General Panchakarma");
+            persist();
+            showAIPopup("Doctor login successful","success");
+            showPage("doctorPage");
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.logout = async function(){
+        const confirmLogout = window.confirm("Are you sure you want to logout?");
+        if(!confirmLogout){
+            return;
+        }
+
+        try{ await api("/api/auth/logout","POST",null,"patient"); }catch(error){}
+        state.patientToken = "";
+        state.patient = null;
+        state.analysis = null;
+        state.progress = "Not Started";
+        localStorage.removeItem("patientName");
+        localStorage.removeItem("email");
+        localStorage.removeItem("age");
+        persist();
+        showPage("loginPage");
+    };
+
+    window.doctorLogout = async function(){
+        const confirmLogout = window.confirm("Are you sure you want to logout?");
+        if(!confirmLogout){
+            return;
+        }
+
+        try{ await api("/api/auth/logout","POST",null,"doctor"); }catch(error){}
+        state.doctorToken = "";
+        state.doctor = null;
+        localStorage.removeItem("doctorLoggedIn");
+        localStorage.removeItem("doctorName");
+        localStorage.removeItem("doctorEmail");
+        localStorage.removeItem("doctorSpecialty");
+        persist();
+        showPage("loginPage");
+    };
+
+    window.analyze = async function(){
+        if(!state.patientToken){
+            showAIPopup("Please login first","error");
+            showPage("loginPage");
+            return;
+        }
+        document.getElementById("loader").style.display="block";
+        try{
+            const data = await api("/api/analysis","POST",{
+                vata_symptoms: checkedSymptoms("vata"),
+                pitta_symptoms: checkedSymptoms("pitta"),
+                kapha_symptoms: checkedSymptoms("kapha")
+            },"patient");
+            state.analysis = data.result;
+            state.progress = "Not Started";
+            persist();
+            showPage("resultPage");
+        }
+        catch(error){
+            showAIPopup(error.message,"error");
+        }
+        finally{
+            document.getElementById("loader").style.display="none";
+        }
+    };
+
+    window.loadResult = async function(){
+        if(!state.analysis && state.patientToken){
+            try{
+                const latest = await api("/api/analysis/latest","GET",null,"patient");
+                if(latest && latest.final_dosha){
+                    state.analysis = {
+                        vata_count: latest.vata_count || 0,
+                        pitta_count: latest.pitta_count || 0,
+                        kapha_count: latest.kapha_count || 0,
+                        final_dosha: latest.final_dosha,
+                        therapy: latest.therapy || "",
+                        diet: latest.diet || "",
+                        therapy_description: latest.therapy_description || ""
+                    };
+                    persist();
+                }
+            }catch(error){}
+        }
+        const r = state.analysis || {
+            final_dosha:"Not analyzed",
+            therapy:"Complete the symptom analysis to see recommendations",
+            diet:"Balanced routine and light meals",
+            therapy_description:"Your therapy recommendation will appear after the analysis step.",
+            vata_count:0,pitta_count:0,kapha_count:0
+        };
+        document.getElementById("doshaText").innerText = r.final_dosha;
+        document.getElementById("therapyText").innerText = r.therapy;
+        document.getElementById("dietText").innerText = r.diet;
+        document.getElementById("therapyDescription").innerText = r.therapy_description;
+        document.getElementById("therapyImage").src = therapyImage(r.therapy);
+        document.getElementById("progressText").innerText = state.progress || "Not Started";
+        if(doshaChart){ doshaChart.destroy(); }
+        doshaChart = new Chart(document.getElementById("chartCanvas"),{
+            type:"pie",
+            options:{ responsive:true, maintainAspectRatio:false },
+            data:{ labels:["Vata","Pitta","Kapha"], datasets:[{ data:[r.vata_count || 0,r.pitta_count || 0,r.kapha_count || 0], backgroundColor:["#43a047","#ef5350","#42a5f5"] }] }
+        });
+    };
+
+    window.completeTreatment = function(){
+        state.progress = "Completed";
+        persist();
+        loadResult();
+    };
+
+    window.downloadPDF = function(){
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const r = state.analysis || {};
+        doc.text("E-Panchakarma Report",20,20);
+        doc.text("Patient: " + ((state.patient && state.patient.name) || "N/A"),20,40);
+        doc.text("Dosha: " + (r.final_dosha || "N/A"),20,50);
+        doc.text("Therapy: " + (r.therapy || "N/A"),20,60);
+        doc.save("E-Panchakarma-Report.pdf");
+    };
+
+    window.updateDoctorRecommendation = async function(){
+        const issue = document.getElementById("patientIssue") ? document.getElementById("patientIssue").value : "";
+        const select = document.getElementById("doctorSelect");
+        const suggestedDoctorName = document.getElementById("suggestedDoctorName");
+        const suggestedDoctorReason = document.getElementById("suggestedDoctorReason");
+        const doctorMatchList = document.getElementById("doctorMatchList");
+        const manualDoctorHint = document.getElementById("manualDoctorHint");
+        if(!select){ return; }
+        select.innerHTML = "";
+        if(doctorMatchList){ doctorMatchList.innerHTML = ""; }
+        const dosha = state.analysis ? (state.analysis.final_dosha || "") : "";
+        const therapy = state.analysis ? (state.analysis.therapy || "") : "";
+
+        try{
+            const rec = await api("/api/doctors/recommend?issue=" + encodeURIComponent(issue) + "&dosha=" + encodeURIComponent(dosha) + "&therapy=" + encodeURIComponent(therapy));
+            const top = rec.top_matches || [];
+            if(top.length === 0){
+                const opt = document.createElement("option");
+                opt.value = "";
+                opt.textContent = "No doctor registered yet";
+                select.appendChild(opt);
+                suggestedDoctorName.innerText = "No doctor available";
+                suggestedDoctorReason.innerText = "Register doctor profiles first.";
+                if(manualDoctorHint){ manualDoctorHint.innerText = "Doctor selection will appear after doctor registration."; }
+                return;
+            }
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = "Select doctor manually";
+            select.appendChild(placeholder);
+            top.forEach((d,index)=>{
+                const opt = document.createElement("option");
+                opt.value = String(d.id);
+                opt.textContent = d.name + " - " + (d.specialty || "General Panchakarma") + " (Score " + d.score + ")";
+                if(index === 0){ opt.selected = true; }
+                select.appendChild(opt);
+            });
+            const best = rec.recommended_doctor;
+            suggestedDoctorName.innerText = best ? (best.name + " (" + best.specialty + ")") : "No doctor suggested yet";
+            suggestedDoctorReason.innerText = best ? best.reason : "Choose issue to get recommendation.";
+            if(manualDoctorHint){ manualDoctorHint.innerText = "System preselected the best doctor. You can still choose another doctor."; }
+            if(doctorMatchList){
+                top.forEach((d,index)=>{
+                    const li = document.createElement("li");
+                    li.innerText = (index + 1) + ". Dr. " + d.name + " (" + d.specialty + ") - " + d.reason;
+                    doctorMatchList.appendChild(li);
+                });
+            }
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.bookAppointment = async function(){
+        if(!state.patientToken){
+            showAIPopup("Please login first","error");
+            return;
+        }
+        const date=document.getElementById("appointDate").value;
+        const time=document.getElementById("appointTime").value;
+        const issue=document.getElementById("patientIssue").value;
+        const doctorIdValue=document.getElementById("doctorSelect").value;
+        if(issue==="" ){ showAIPopup("Please choose health issue","error"); return; }
+        if(date==="" || time===""){ showAIPopup("Please select date and time","error"); return; }
+        const payload = {issue:issue, appointment_date:date, appointment_time:time};
+        if(doctorIdValue){ payload.doctor_id = Number(doctorIdValue); } else { payload.use_system_suggestion = true; }
+        try{
+            await api("/api/appointments","POST",payload,"patient");
+            await updatePatientStatus();
+            showAIPopup("Appointment booked","success");
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.updatePatientStatus = async function(){
+        const statusEl = document.getElementById("appointStatus");
+        if(!state.patientToken){
+            statusEl.innerText = "Please login to view appointment status";
+            return;
+        }
+        try{
+            const list = await api("/api/appointments/my","GET",null,"patient");
+            const latest = list.length ? list[0] : null;
+            statusEl.innerText = latest ? (latest.status + " with Dr. " + (latest.doctor_name || "Assigned Doctor")) : "No appointment booked";
+        }catch(error){
+            statusEl.innerText = "Unable to load appointment status";
+        }
+    };
+
+    window.loadAppointments = async function(){
+        const listEl=document.getElementById("appointmentList");
+        listEl.innerHTML="";
+        try{
+            const list=await api("/api/doctor/appointments","GET",null,"doctor");
+            const latest = list.length ? list[0] : null;
+            document.getElementById("docPatient").innerText = latest ? latest.patient_name : "Not available";
+            document.getElementById("docDosha").innerText = latest ? (latest.dosha || "Not analyzed") : "Not analyzed";
+            document.getElementById("docTherapy").innerText = latest ? (latest.therapy || "Not assigned") : "Not assigned";
+            document.getElementById("docProgress").innerText = latest ? (latest.progress || "Not Started") : "Not Started";
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No appointments for this doctor yet.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((a)=>{
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerHTML =
+                "<b>" + (a.patient_name || "Patient") + "</b><br>" +
+                "Issue: " + (a.issue || "General consultation") + "<br>" +
+                "Booked via: " + (a.suggested_by_system ? "System suggestion" : "Manual doctor choice") + "<br>" +
+                "Date: " + a.appointment_date + " | Time: " + a.appointment_time + "<br>" +
+                "Status: <b>" + (a.status || "Pending") + "</b>";
+                listEl.appendChild(item);
+            });
+        }
+        catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load appointments.";
+            listEl.appendChild(item);
+        }
+    };
+
+    const originalShowPage = window.showPage;
+    window.showPage = function(page, addToHistory=true){
+        originalShowPage(page, addToHistory);
+        if(page==="dashboardPage"){
+            document.getElementById("patientName").innerText = (state.patient && state.patient.name) ? state.patient.name : "Patient";
+        }
+        if(page==="appointmentPage"){
+            updatePatientStatus();
+            updateDoctorRecommendation();
+        }
+        if(page==="doctorLoginPage"){
+            resetDoctorLoginForm();
+        }
+        if(page==="doctorPage"){
+            if(!state.doctorToken){
+                showAIPopup("Access denied. Doctor login required.","error");
+                originalShowPage("doctorLoginPage");
+                return;
+            }
+            document.getElementById("doctorDisplayName").innerText = (state.doctor && state.doctor.name) ? state.doctor.name : "Doctor";
+            document.getElementById("doctorDisplaySpecialty").innerText = (state.doctor && state.doctor.specialty) ? state.doctor.specialty : "Not assigned";
+            loadAppointments();
+        }
+    };
+
+    checkBackendHealth();
+    setupTherapyStaticImages();
+    handleGoogleRedirectResult();
+    showLogin();
+    if(state.patientToken && state.patient){
+        showPage("dashboardPage", false);
+    }
+    else{
+        showPage("loginPage", false);
+    }
+})();
+</script>
+<script>
+(function(){
+    const LANGUAGE_KEY = "ep_language";
+    let currentLanguage = localStorage.getItem(LANGUAGE_KEY) || "en";
+    const packs = {
+        en:{
+            "nav.back":"Back","nav.forward":"Forward","nav.reload":"Reload","nav.dark":"Dark Mode","nav.language":"Language",
+            "title.main":"E-Panchakarma AI Health System",
+            "terms.title":"Terms & Conditions","terms.line1":"1. This system provides health suggestions based on symptoms.","terms.line2":"2. It does not replace professional medical advice.","terms.line3":"3. Patient data is stored locally for project demonstration.","terms.line4":"4. Users should consult a certified Ayurvedic doctor before therapy.","terms.line5":"5. By using this system, you agree to educational and research usage.","common.close":"Close",
+            "common.or":"or","common.show_password":"Show Password","common.continue_google":"Continue with Google",
+            "auth.login":"Login","auth.register":"Register","auth.doctor_login":"Doctor Login","auth.doctor_register":"Doctor Register","auth.enter_name":"Enter Name","auth.enter_email":"Enter Email","auth.enter_password":"Enter Password","auth.name":"Name","auth.age":"Age","auth.create_password":"Create Password","auth.agree_prefix":"I agree to the",
+            "doctor.admin":"Doctor Admin","doctor.none_registered":"No doctor registered yet","doctor.email":"Doctor Email","doctor.password":"Doctor Password","doctor.register_note":"Register doctor profile to enable direct login with your email and password.","doctor.name":"Doctor Name","doctor.hospital":"Hospital Name","doctor.specialty.select":"Select Doctor Specialty","doctor.specialty.respiratory":"Respiratory & Kapha Care","doctor.specialty.digestive":"Digestive & Pitta Care","doctor.specialty.vata":"Vata & Pain Care","doctor.specialty.ent":"ENT & Head Care","doctor.specialty.skin":"Skin & Blood Purification","doctor.specialty.general":"General Panchakarma","doctor.register":"Register Doctor",
+            "dashboard.kicker":"Dashboard","dashboard.quick":"Quick Access","dashboard.sidebar_desc":"Use this side navigation to move through every patient page.","dashboard.menu.dashboard":"Dashboard","dashboard.menu.analysis":"Start Analysis","dashboard.menu.result":"View Result","dashboard.menu.appointment":"Book Appointment","dashboard.menu.panchakarma":"View Panchakarma Description","dashboard.menu.logout":"Logout","dashboard.welcome":"Welcome {name}","dashboard.subtitle":"Manage your analysis journey, view care guidance, and keep your appointments organized from this patient dashboard.","dashboard.tile.analysis":"Health Analysis","dashboard.tile.analysis_desc":"Start a symptom-based assessment to review dosha imbalance and suggested care.","dashboard.tile.appointments":"Appointments","dashboard.tile.appointments_desc":"Book a visit and keep track of your next consultation with ease.","dashboard.tile.guide":"Panchakarma Guide","dashboard.tile.guide_desc":"Read therapy descriptions before choosing the most suitable treatment path.","dashboard.tile.results":"Patient Results","dashboard.tile.results_desc":"Return to your result page anytime to review your latest health summary.","dashboard.tile.personal":"Personal Dashboard","dashboard.tile.personal_desc":"Use the left sidebar anytime to move quickly between analysis, results, and appointments.","dashboard.tile.therapy":"Therapy Overview","dashboard.tile.therapy_desc":"Keep important Panchakarma information visible while you navigate your account.",
+            "symptom.title":"Health Questionnaire","symptom.subtitle":"Select all symptoms you currently feel. More accurate selection gives better dosha analysis.","symptom.vata":"Vata Symptoms","symptom.pitta":"Pitta Symptoms","symptom.kapha":"Kapha Symptoms","symptom.analyze":"Analyze",
+            "result.title":"Dosha Result","result.dominant":"Dominant Dosha:","result.therapy":"Recommended Therapy","result.diet":"Diet & Lifestyle:","result.progress":"Progress:","result.complete":"Mark Complete","result.pdf":"Download PDF","result.not_analyzed":"Not analyzed","result.recommendation_pending":"Complete the symptom analysis to see recommendations","result.default_diet":"Balanced routine and light meals","result.default_desc":"Your therapy recommendation will appear after the analysis step.",
+            "progress.not_started":"Not Started","progress.completed":"Completed",
+            "doctor.label":"Doctor:","doctor.specialty_label":"Specialty:","doctor.patient":"Patient:","doctor.dosha":"Dosha:","doctor.therapy_label":"Therapy:","doctor.progress_label":"Progress:","doctor.appointment_list":"Appointment List","doctor.logout":"Doctor Logout",
+            "appointment.title":"Book Appointment","appointment.issue.select":"Select Health Issue","appointment.issue.respiratory":"Respiratory / Kapha issue","appointment.issue.digestive":"Digestive / acidity issue","appointment.issue.joint":"Joint pain / Vata issue","appointment.issue.sinus":"Sinus / migraine / head issue","appointment.issue.skin":"Skin disorder","appointment.issue.blood":"Blood purification issue","appointment.issue.general":"General consultation","appointment.system_doctor":"System Suggested Doctor:","appointment.none_suggested":"No doctor suggested yet","appointment.why":"Why:","appointment.why_default":"Choose your health issue or complete analysis to get a recommendation.","appointment.manual_hint":"Choose doctor manually, or keep the system suggested doctor selected.","appointment.top_matches":"Top Matching Doctors","appointment.confirm":"Confirm Appointment","appointment.status":"Status:","appointment.none_booked":"No appointment booked","appointment.view_status":"Please login to view appointment status","appointment.unable_status":"Unable to load appointment status","appointment.select_manual":"Select doctor manually","appointment.none_available":"No doctor available","appointment.register_first":"Register doctor profiles first.","appointment.selection_after_register":"Doctor selection will appear after doctor registration.","appointment.system_preselected":"System preselected the best doctor. You can still choose another doctor.","appointment.booked":"Appointment booked","appointment.assigned_doctor":"Assigned Doctor","appointment.not_available":"Not available","appointment.not_assigned":"Not assigned","appointment.pending":"Pending","appointment.system_suggestion":"System suggestion","appointment.manual_choice":"Manual doctor choice","appointment.issue_label":"Issue:","appointment.booked_via":"Booked via:","appointment.date_time":"Date:","appointment.status_line":"Status:","appointment.no_doctor_yet":"No appointments for this doctor yet.","appointment.unable_load":"Unable to load appointments.",
+            "panchakarma.title":"Panchakarma Therapies","panchakarma.subtitle":"Five Detoxification Therapies of Ayurveda","panchakarma.vamana":"Vamana (Therapeutic Emesis)","panchakarma.virechana":"Virechana (Purgation Therapy)","panchakarma.basti":"Basti (Medicated Enema)","panchakarma.nasya":"Nasya (Nasal Therapy)","panchakarma.rakta":"Raktamokshana (Blood Detox)",
+            "pdf.title":"E-Panchakarma Report","pdf.patient":"Patient:","pdf.dosha":"Dosha:","pdf.therapy":"Therapy:",
+            "symptom.dry_skin":"Dry Skin","symptom.anxiety":"Anxiety","symptom.joint_pain":"Joint Pain","symptom.constipation":"Constipation","symptom.insomnia":"Insomnia / Light Sleep","symptom.cold_extremities":"Cold Hands and Feet","symptom.gas":"Gas / Bloating","symptom.irregular_appetite":"Irregular Appetite",
+            "symptom.acidity":"Acidity","symptom.anger":"Anger","symptom.skin_rashes":"Skin Rashes","symptom.sweating":"Excessive Sweating","symptom.burning":"Burning Sensation","symptom.loose_motions":"Loose Motions","symptom.hair_fall":"Hair Fall / Early Greying","symptom.irritability":"Irritability",
+            "symptom.weight_gain":"Weight Gain","symptom.laziness":"Laziness","symptom.cold_cough":"Cold & Cough","symptom.water_retention":"Water Retention / Swelling","symptom.slow_digestion":"Slow Digestion","symptom.excess_sleep":"Excess Sleep","symptom.mucus":"Mucus Congestion","symptom.low_motivation":"Low Motivation"
+        },
+        hi:{
+            "nav.back":"पीछे","nav.forward":"आगे","nav.reload":"रीलोड","nav.dark":"डार्क मोड","nav.language":"भाषा","title.main":"ई-पंचकर्म एआई हेल्थ सिस्टम",
+            "terms.title":"नियम और शर्तें","terms.line1":"1. यह सिस्टम लक्षणों के आधार पर स्वास्थ्य संबंधी सुझाव देता है।","terms.line2":"2. यह पेशेवर चिकित्सीय सलाह का विकल्प नहीं है।","terms.line3":"3. रोगी का डेटा प्रोजेक्ट डेमो के लिए लोकली संग्रहीत किया जाता है।","terms.line4":"4. उपचार से पहले प्रमाणित आयुर्वेदिक डॉक्टर से सलाह लें।","terms.line5":"5. इस सिस्टम का उपयोग करके आप शैक्षणिक और शोध उपयोग से सहमत होते हैं।","common.close":"बंद करें",
+            "common.or":"या","common.show_password":"पासवर्ड दिखाएं","common.continue_google":"Google से जारी रखें",
+            "auth.login":"लॉगिन","auth.register":"रजिस्टर","auth.doctor_login":"डॉक्टर लॉगिन","auth.doctor_register":"डॉक्टर रजिस्टर","auth.enter_name":"नाम दर्ज करें","auth.enter_email":"ईमेल दर्ज करें","auth.enter_password":"पासवर्ड दर्ज करें","auth.name":"नाम","auth.age":"उम्र","auth.create_password":"पासवर्ड बनाएं","auth.agree_prefix":"मैं सहमत हूं",
+            "doctor.admin":"डॉक्टर एडमिन","doctor.none_registered":"अभी तक कोई डॉक्टर रजिस्टर्ड नहीं है","doctor.email":"डॉक्टर ईमेल","doctor.password":"डॉक्टर पासवर्ड","doctor.register_note":"ईमेल और पासवर्ड से सीधे लॉगिन सक्षम करने के लिए डॉक्टर प्रोफाइल रजिस्टर करें।","doctor.name":"डॉक्टर का नाम","doctor.hospital":"अस्पताल का नाम","doctor.specialty.select":"डॉक्टर विशेषज्ञता चुनें","doctor.specialty.respiratory":"श्वसन और कफ देखभाल","doctor.specialty.digestive":"पाचन और पित्त देखभाल","doctor.specialty.vata":"वात और दर्द देखभाल","doctor.specialty.ent":"ईएनटी और सिर देखभाल","doctor.specialty.skin":"त्वचा और रक्त शुद्धि","doctor.specialty.general":"जनरल पंचकर्म","doctor.register":"डॉक्टर रजिस्टर करें",
+            "dashboard.kicker":"डैशबोर्ड","dashboard.quick":"त्वरित पहुंच","dashboard.sidebar_desc":"इस साइड नेविगेशन से सभी रोगी पेजों पर जाएं।","dashboard.menu.dashboard":"डैशबोर्ड","dashboard.menu.analysis":"विश्लेषण शुरू करें","dashboard.menu.result":"परिणाम देखें","dashboard.menu.appointment":"अपॉइंटमेंट बुक करें","dashboard.menu.panchakarma":"पंचकर्म विवरण देखें","dashboard.menu.logout":"लॉगआउट","dashboard.welcome":"स्वागत है {name}","dashboard.subtitle":"इस रोगी डैशबोर्ड से अपना विश्लेषण, देखभाल मार्गदर्शन और अपॉइंटमेंट आसानी से प्रबंधित करें।","dashboard.tile.analysis":"स्वास्थ्य विश्लेषण","dashboard.tile.analysis_desc":"दोष असंतुलन और सुझाई गई देखभाल देखने के लिए लक्षण आधारित आकलन शुरू करें।","dashboard.tile.appointments":"अपॉइंटमेंट","dashboard.tile.appointments_desc":"अपनी अगली परामर्श यात्रा आसानी से बुक और ट्रैक करें।","dashboard.tile.guide":"पंचकर्म गाइड","dashboard.tile.guide_desc":"उपयुक्त उपचार चुनने से पहले थेरेपी विवरण पढ़ें।","dashboard.tile.results":"रोगी परिणाम","dashboard.tile.results_desc":"अपना नवीनतम स्वास्थ्य सारांश देखने के लिए परिणाम पेज पर लौटें।","dashboard.tile.personal":"व्यक्तिगत डैशबोर्ड","dashboard.tile.personal_desc":"विश्लेषण, परिणाम और अपॉइंटमेंट के बीच जल्दी जाने के लिए बाईं साइडबार का उपयोग करें।","dashboard.tile.therapy":"थेरेपी अवलोकन","dashboard.tile.therapy_desc":"खाते में नेविगेट करते समय महत्वपूर्ण पंचकर्म जानकारी दृश्य रखें।",
+            "symptom.title":"स्वास्थ्य प्रश्नावली","symptom.subtitle":"जो लक्षण आप अभी महसूस कर रहे हैं, उन्हें चुनें। सही चयन से बेहतर दोष विश्लेषण मिलता है।","symptom.vata":"वात लक्षण","symptom.pitta":"पित्त लक्षण","symptom.kapha":"कफ लक्षण","symptom.analyze":"विश्लेषण करें",
+            "result.title":"दोष परिणाम","result.dominant":"मुख्य दोष:","result.therapy":"सुझाई गई थेरेपी","result.diet":"आहार और जीवनशैली:","result.progress":"प्रगति:","result.complete":"पूर्ण चिन्हित करें","result.pdf":"PDF डाउनलोड करें","result.not_analyzed":"विश्लेषण नहीं हुआ","result.recommendation_pending":"सिफारिशें देखने के लिए लक्षण विश्लेषण पूरा करें","result.default_diet":"संतुलित दिनचर्या और हल्का भोजन","result.default_desc":"विश्लेषण के बाद आपकी थेरेपी सिफारिश यहां दिखाई देगी।","progress.not_started":"शुरू नहीं हुआ","progress.completed":"पूर्ण",
+            "doctor.label":"डॉक्टर:","doctor.specialty_label":"विशेषज्ञता:","doctor.patient":"रोगी:","doctor.dosha":"दोष:","doctor.therapy_label":"थेरेपी:","doctor.progress_label":"प्रगति:","doctor.appointment_list":"अपॉइंटमेंट सूची","doctor.logout":"डॉक्टर लॉगआउट",
+            "appointment.title":"अपॉइंटमेंट बुक करें","appointment.issue.select":"स्वास्थ्य समस्या चुनें","appointment.issue.respiratory":"श्वसन / कफ समस्या","appointment.issue.digestive":"पाचन / एसिडिटी समस्या","appointment.issue.joint":"जोड़ दर्द / वात समस्या","appointment.issue.sinus":"साइनस / माइग्रेन / सिर समस्या","appointment.issue.skin":"त्वचा विकार","appointment.issue.blood":"रक्त शुद्धि समस्या","appointment.issue.general":"सामान्य परामर्श","appointment.system_doctor":"सिस्टम द्वारा सुझाया गया डॉक्टर:","appointment.none_suggested":"अभी कोई डॉक्टर सुझावित नहीं है","appointment.why":"क्यों:","appointment.why_default":"सिफारिश पाने के लिए अपनी स्वास्थ्य समस्या चुनें या विश्लेषण पूरा करें।","appointment.manual_hint":"डॉक्टर स्वयं चुनें, या सिस्टम द्वारा सुझाए गए डॉक्टर को ही रहने दें।","appointment.top_matches":"शीर्ष मिलान वाले डॉक्टर","appointment.confirm":"अपॉइंटमेंट पुष्टि करें","appointment.status":"स्थिति:","appointment.none_booked":"कोई अपॉइंटमेंट बुक नहीं है","appointment.view_status":"अपॉइंटमेंट स्थिति देखने के लिए पहले लॉगिन करें","appointment.unable_status":"अपॉइंटमेंट स्थिति लोड नहीं हो सकी","appointment.select_manual":"डॉक्टर स्वयं चुनें","appointment.none_available":"कोई डॉक्टर उपलब्ध नहीं है","appointment.register_first":"पहले डॉक्टर प्रोफाइल रजिस्टर करें।","appointment.selection_after_register":"डॉक्टर पंजीकरण के बाद डॉक्टर चयन दिखाई देगा।","appointment.system_preselected":"सिस्टम ने सबसे उपयुक्त डॉक्टर पहले से चुना है। आप चाहें तो दूसरा डॉक्टर चुन सकते हैं।","appointment.booked":"अपॉइंटमेंट बुक हो गया","appointment.assigned_doctor":"निर्धारित डॉक्टर","appointment.not_available":"उपलब्ध नहीं","appointment.not_assigned":"निर्धारित नहीं","appointment.pending":"लंबित","appointment.system_suggestion":"सिस्टम सुझाव","appointment.manual_choice":"मैनुअल चयन","appointment.issue_label":"समस्या:","appointment.booked_via":"बुकिंग माध्यम:","appointment.date_time":"तारीख:","appointment.status_line":"स्थिति:","appointment.no_doctor_yet":"इस डॉक्टर के लिए अभी कोई अपॉइंटमेंट नहीं है।","appointment.unable_load":"अपॉइंटमेंट लोड नहीं हो पाए।",
+            "panchakarma.title":"पंचकर्म थेरेपी","panchakarma.subtitle":"आयुर्वेद की पांच शोधन थेरेपी","panchakarma.vamana":"वमन (चिकित्सीय वमन)","panchakarma.virechana":"विरेचन (शोधन चिकित्सा)","panchakarma.basti":"बस्ति (औषधीय एनीमा)","panchakarma.nasya":"नस्य (नाक चिकित्सा)","panchakarma.rakta":"रक्तमोक्षण (रक्त शुद्धि)",
+            "pdf.title":"ई-पंचकर्म रिपोर्ट","pdf.patient":"रोगी:","pdf.dosha":"दोष:","pdf.therapy":"थेरेपी:",
+            "symptom.dry_skin":"सूखी त्वचा","symptom.anxiety":"चिंता","symptom.joint_pain":"जोड़ों का दर्द","symptom.constipation":"कब्ज","symptom.insomnia":"अनिद्रा / हल्की नींद","symptom.cold_extremities":"हाथ-पैर ठंडे रहना","symptom.gas":"गैस / पेट फूलना","symptom.irregular_appetite":"अनियमित भूख","symptom.acidity":"एसिडिटी","symptom.anger":"गुस्सा","symptom.skin_rashes":"त्वचा पर चकत्ते","symptom.sweating":"अधिक पसीना","symptom.burning":"जलन","symptom.loose_motions":"दस्त","symptom.hair_fall":"बाल झड़ना / समय से पहले सफेदी","symptom.irritability":"चिड़चिड़ापन","symptom.weight_gain":"वजन बढ़ना","symptom.laziness":"सुस्ती","symptom.cold_cough":"जुकाम और खांसी","symptom.water_retention":"जल रुकावट / सूजन","symptom.slow_digestion":"धीमा पाचन","symptom.excess_sleep":"अधिक नींद","symptom.mucus":"बलगम जमना","symptom.low_motivation":"कम प्रेरणा"
+        },
+        gu:{
+            "nav.back":"પાછળ","nav.forward":"આગળ","nav.reload":"રીલોડ","nav.dark":"ડાર્ક મોડ","nav.language":"ભાષા","title.main":"ઈ-પંચકર્મ એઆઈ હેલ્થ સિસ્ટમ",
+            "terms.title":"નિયમો અને શરતો","terms.line1":"1. આ સિસ્ટમ લક્ષણોના આધાર પર આરોગ્ય સૂચનો આપે છે.","terms.line2":"2. આ વ્યાવસાયિક તબીબી સલાહનું સ્થાન લેતી નથી.","terms.line3":"3. દર્દીનો ડેટા પ્રોજેક્ટ ડેમો માટે લોકલી સંગ્રહિત થાય છે.","terms.line4":"4. થેરાપી પહેલા પ્રમાણિત આયુર્વેદિક ડૉક્ટરનો સંપર્ક કરો.","terms.line5":"5. આ સિસ્ટમનો ઉપયોગ કરીને તમે શૈક્ષણિક અને સંશોધન ઉપયોગ માટે સંમત થાઓ છો.","common.close":"બંધ કરો",
+            "common.or":"અથવા","common.show_password":"પાસવર્ડ બતાવો","common.continue_google":"Google સાથે આગળ વધો",
+            "auth.login":"લૉગિન","auth.register":"રજીસ્ટર","auth.doctor_login":"ડૉક્ટર લૉગિન","auth.doctor_register":"ડૉક્ટર રજીસ્ટર","auth.enter_name":"નામ દાખલ કરો","auth.enter_email":"ઇમેલ દાખલ કરો","auth.enter_password":"પાસવર્ડ દાખલ કરો","auth.name":"નામ","auth.age":"ઉમર","auth.create_password":"પાસવર્ડ બનાવો","auth.agree_prefix":"હું સહમત છું",
+            "doctor.admin":"ડૉક્ટર એડમિન","doctor.none_registered":"હજુ સુધી કોઈ ડૉક્ટર રજીસ્ટર થયો નથી","doctor.email":"ડૉક્ટર ઇમેલ","doctor.password":"ડૉક્ટર પાસવર્ડ","doctor.register_note":"ઇમેલ અને પાસવર્ડ દ્વારા સીધા લૉગિન માટે ડૉક્ટર પ્રોફાઇલ રજીસ્ટર કરો.","doctor.name":"ડૉક્ટરનું નામ","doctor.hospital":"હોસ્પિટલનું નામ","doctor.specialty.select":"ડૉક્ટર વિશેષતા પસંદ કરો","doctor.specialty.respiratory":"શ્વસન અને કફ કાળજી","doctor.specialty.digestive":"પાચન અને પિત્ત કાળજી","doctor.specialty.vata":"વાત અને પીડા કાળજી","doctor.specialty.ent":"ENT અને માથાની કાળજી","doctor.specialty.skin":"ત્વચા અને રક્ત શુદ્ધિકરણ","doctor.specialty.general":"જનરલ પંચકર્મ","doctor.register":"ડૉક્ટર રજીસ્ટર કરો",
+            "dashboard.kicker":"ડેશબોર્ડ","dashboard.quick":"ઝડપી ઍક્સેસ","dashboard.sidebar_desc":"આ સાઇડ નેવિગેશનથી તમામ દર્દી પેજ વચ્ચે સરળતાથી જવો.","dashboard.menu.dashboard":"ડેશબોર્ડ","dashboard.menu.analysis":"વિશ્લેષણ શરૂ કરો","dashboard.menu.result":"પરિણામ જુઓ","dashboard.menu.appointment":"અપોઇન્ટમેન્ટ બુક કરો","dashboard.menu.panchakarma":"પંચકર્મ વર્ણન જુઓ","dashboard.menu.logout":"લૉગઆઉટ","dashboard.welcome":"સ્વાગત છે {name}","dashboard.subtitle":"આ દર્દી ડેશબોર્ડથી તમારું વિશ્લેષણ, કાળજી માર્ગદર્શન અને અપોઇન્ટમેન્ટ સરળતાથી મેનેજ કરો.","dashboard.tile.analysis":"આરોગ્ય વિશ્લેષણ","dashboard.tile.analysis_desc":"દોષ અસંતુલન અને સૂચિત કાળજી જોવા માટે લક્ષણ આધારિત મૂલ્યાંકન શરૂ કરો.","dashboard.tile.appointments":"અપોઇન્ટમેન્ટ","dashboard.tile.appointments_desc":"તમારી આગામી પરામર્શ મુલાકાત સરળતાથી બુક અને ટ્રૅક કરો.","dashboard.tile.guide":"પંચકર્મ માર્ગદર્શિકા","dashboard.tile.guide_desc":"યોગ્ય સારવાર પસંદ કરતાં પહેલા થેરાપીનું વર્ણન વાંચો.","dashboard.tile.results":"દર્દી પરિણામ","dashboard.tile.results_desc":"તમારું છેલ્લું આરોગ્ય સારાંશ જોવા માટે પરિણામ પેજ પર પાછા આવો.","dashboard.tile.personal":"વ્યક્તિગત ડેશબોર્ડ","dashboard.tile.personal_desc":"વિશ્લેષણ, પરિણામ અને અપોઇન્ટમેન્ટ વચ્ચે ઝડપી જવા માટે ડાબી સાઇડબારનો ઉપયોગ કરો.","dashboard.tile.therapy":"થેરાપી અવલોકન","dashboard.tile.therapy_desc":"એકાઉન્ટમાં ફરતા સમયે મહત્વની પંચકર્મ માહિતી દેખાતી રાખો.",
+            "symptom.title":"આરોગ્ય પ્રશ્નાવલી","symptom.subtitle":"હાલમાં અનુભવાતા બધા લક્ષણો પસંદ કરો. વધુ સાચી પસંદગીથી વધુ સારો દોષ વિશ્લેષણ મળે છે.","symptom.vata":"વાત લક્ષણો","symptom.pitta":"પિત્ત લક્ષણો","symptom.kapha":"કફ લક્ષણો","symptom.analyze":"વિશ્લેષણ કરો",
+            "result.title":"દોષ પરિણામ","result.dominant":"મુખ્ય દોષ:","result.therapy":"ભલામણ કરાયેલ થેરાપી","result.diet":"આહાર અને જીવનશૈલી:","result.progress":"પ્રગતિ:","result.complete":"પૂર્ણ ચિહ્નિત કરો","result.pdf":"PDF ડાઉનલોડ કરો","result.not_analyzed":"વિશ્લેષણ થયું નથી","result.recommendation_pending":"ભલામણ જોવા માટે લક્ષણ વિશ્લેષણ પૂર્ણ કરો","result.default_diet":"સંતુલિત દિનચર્ય અને હળવો આહાર","result.default_desc":"વિશ્લેષણ પછી તમારી થેરાપી ભલામણ અહીં દેખાશે.","progress.not_started":"શરૂ થયું નથી","progress.completed":"પૂર્ણ",
+            "doctor.label":"ડૉક્ટર:","doctor.specialty_label":"વિશેષતા:","doctor.patient":"દર્દી:","doctor.dosha":"દોષ:","doctor.therapy_label":"થેરાપી:","doctor.progress_label":"પ્રગતિ:","doctor.appointment_list":"અપોઇન્ટમેન્ટ યાદી","doctor.logout":"ડૉક્ટર લૉગઆઉટ",
+            "appointment.title":"અપોઇન્ટમેન્ટ બુક કરો","appointment.issue.select":"આરોગ્ય સમસ્યા પસંદ કરો","appointment.issue.respiratory":"શ્વસન / કફ સમસ્યા","appointment.issue.digestive":"પાચન / એસિડિટી સમસ્યા","appointment.issue.joint":"સાંધાનો દુખાવો / વાત સમસ્યા","appointment.issue.sinus":"સાઇનસ / માઇગ્રેન / માથાની સમસ્યા","appointment.issue.skin":"ત્વચા રોગ","appointment.issue.blood":"રક્ત શુદ્ધિકરણ સમસ્યા","appointment.issue.general":"સામાન્ય સલાહ","appointment.system_doctor":"સિસ્ટમ સૂચિત ડૉક્ટર:","appointment.none_suggested":"હજુ સુધી કોઈ ડૉક્ટર સૂચિત નથી","appointment.why":"શા માટે:","appointment.why_default":"ભલામણ માટે તમારી આરોગ્ય સમસ્યા પસંદ કરો અથવા વિશ્લેષણ પૂર્ણ કરો.","appointment.manual_hint":"ડૉક્ટર જાતે પસંદ કરો અથવા સિસ્ટમ સૂચિત ડૉક્ટરને રાખો.","appointment.top_matches":"ટોચના મેળ ખાતા ડૉક્ટરો","appointment.confirm":"અપોઇન્ટમેન્ટ પુષ્ટિ કરો","appointment.status":"સ્થિતિ:","appointment.none_booked":"કોઈ અપોઇન્ટમેન્ટ બુક નથી","appointment.view_status":"અપોઇન્ટમેન્ટ સ્થિતિ જોવા માટે પહેલા લૉગિન કરો","appointment.unable_status":"અપોઇન્ટમેન્ટ સ્થિતિ લોડ થઈ શકી નથી","appointment.select_manual":"ડૉક્ટર જાતે પસંદ કરો","appointment.none_available":"કોઈ ડૉક્ટર ઉપલબ્ધ નથી","appointment.register_first":"પહેલા ડૉક્ટર પ્રોફાઇલ રજીસ્ટર કરો.","appointment.selection_after_register":"ડૉક્ટર રજીસ્ટ્રેશન પછી ડૉક્ટર પસંદગી દેખાશે.","appointment.system_preselected":"સિસ્ટમે શ્રેષ્ઠ ડૉક્ટર પહેલેથી પસંદ કર્યો છે. તમે બીજા ડૉક્ટર પણ પસંદ કરી શકો છો.","appointment.booked":"અપોઇન્ટમેન્ટ બુક થઈ ગઈ","appointment.assigned_doctor":"નિયુક્ત ડૉક્ટર","appointment.not_available":"ઉપલબ્ધ નથી","appointment.not_assigned":"નિયુક્ત નથી","appointment.pending":"બાકી","appointment.system_suggestion":"સિસ્ટમ સૂચન","appointment.manual_choice":"મેન્યુઅલ પસંદગી","appointment.issue_label":"સમस्या:","appointment.booked_via":"બુકિંગ માધ્યમ:","appointment.date_time":"તારીખ:","appointment.status_line":"સ્થિતિ:","appointment.no_doctor_yet":"આ ડૉક્ટર માટે હજી કોઈ અપોઇન્ટમેન્ટ નથી.","appointment.unable_load":"અપોઇન્ટમેન્ટ લોડ થઈ શકી નથી.",
+            "panchakarma.title":"પંચકર્મ થેરાપીઓ","panchakarma.subtitle":"આયુર્વેદની પાંચ શુદ્ધિકરણ થેરાપીઓ","panchakarma.vamana":"વમન (ચિકિત્સાત્મક વમન)","panchakarma.virechana":"વિરેચન (શોધન થેરાપી)","panchakarma.basti":"બસ્તી (ઔષધીય એનિમા)","panchakarma.nasya":"નસ્ય (નાસિકાથેરાપી)","panchakarma.rakta":"રક્તમોક્ષણ (રક્ત શુદ્ધિકરણ)",
+            "pdf.title":"ઈ-પંચકર્મ રિપોર્ટ","pdf.patient":"દર્દી:","pdf.dosha":"દોષ:","pdf.therapy":"થેરાપી:",
+            "symptom.dry_skin":"સૂકી ત્વચા","symptom.anxiety":"ચિંતા","symptom.joint_pain":"સાંધાનો દુખાવો","symptom.constipation":"કબજિયાત","symptom.insomnia":"અનિદ્રા / હળવી ઊંઘ","symptom.cold_extremities":"ઠંડા હાથ અને પગ","symptom.gas":"ગેસ / પેટ ફૂલવું","symptom.irregular_appetite":"અનિયમિત ભૂખ","symptom.acidity":"એસિડિટી","symptom.anger":"ગુસ્સો","symptom.skin_rashes":"ત્વચાના ચકામા","symptom.sweating":"વધારે ઘમો આવવો","symptom.burning":"બળતર","symptom.loose_motions":"ઢીલા સ્ત્રાવ","symptom.hair_fall":"વાળ ખરવા / વહેલી સફેદી","symptom.irritability":"ચીડિયાપણું","symptom.weight_gain":"વજન વધવું","symptom.laziness":"આળસ","symptom.cold_cough":"ઠંડ અને ઉધરસ","symptom.water_retention":"પાણી ભરાવું / સોજો","symptom.slow_digestion":"ધીમું પાચન","symptom.excess_sleep":"વધારે ઊંઘ","symptom.mucus":"કફ ભરાવું","symptom.low_motivation":"ઓછી પ્રેરણા"
+        }
+    };
+    const defaultTherapyHtml = {
+        vamana: document.getElementById("vamanaBox") ? document.getElementById("vamanaBox").innerHTML : "",
+        virechana: document.getElementById("virechanaBox") ? document.getElementById("virechanaBox").innerHTML : "",
+        basti: document.getElementById("bastiBox") ? document.getElementById("bastiBox").innerHTML : "",
+        nasya: document.getElementById("nasyaBox") ? document.getElementById("nasyaBox").innerHTML : "",
+        rakta: document.getElementById("raktaBox") ? document.getElementById("raktaBox").innerHTML : ""
+    };
+    const therapyTranslations = {
+        hi: {
+            vamana: `
+                <p><b>वमन थेरेपी क्या है?</b></p>
+                <p>वमन थेरेपी आयुर्वेद की एक विशेष शोधन प्रक्रिया है और पंचकर्म की पाँच प्रमुख चिकित्सा पद्धतियों में से एक है। वमन का अर्थ नियंत्रित और वैज्ञानिक तरीके से चिकित्सीय वमन कराकर शरीर से अतिरिक्त कफ, बलगम और विषैले तत्वों को बाहर निकालना है।</p>
+                <p><b>वमन थेरेपी का उद्देश्य</b></p>
+                <p>वमन का मुख्य उपयोग अतिरिक्त कफ हटाने, फेफड़ों और पेट की शुद्धि करने, पाचन और मेटाबॉलिज्म सुधारने तथा प्रतिरक्षा शक्ति को सहारा देने के लिए किया जाता है।</p>
+                <p><b>किन रोगों में उपयोगी</b></p>
+                <p>यह अस्थमा, पुरानी खांसी, एलर्जी, एक्जिमा और सोरायसिस जैसे त्वचा रोग, मोटापा तथा साइनस की समस्याओं में उपयोगी मानी जाती है।</p>
+                <p><b>वमन थेरेपी के लिए आवश्यकताएँ</b></p>
+                <p><b>1. रोगी की आवश्यकता:</b> रोगी शारीरिक रूप से सक्षम हो और उसका पाचन अच्छा हो। यह सामान्यतः बच्चों, कमजोर वृद्धों, गर्भवती महिलाओं और हृदय रोगियों के लिए उपयुक्त नहीं मानी जाती।</p>
+                <p><b>2. आवश्यक सामग्री:</b> आंतरिक स्निग्धीकरण के लिए घृत, मदनफल और यष्टिमधु जैसे काढ़े, दूध या नमक का पानी, वमन पात्र, तौलिये और गुनगुना पानी।</p>
+                <p><b>3. वातावरण:</b> स्वच्छ और शांत कमरा आवश्यक है। प्रातःकाल, विशेषकर सुबह 6 से 8 बजे के बीच, उपयुक्त माना जाता है और प्रक्रिया प्रशिक्षित आयुर्वेदिक चिकित्सक की देखरेख में होनी चाहिए।</p>
+                <p><b>वमन थेरेपी की प्रक्रिया</b></p>
+                <p><b>चरण 1: पूर्व कर्म (तैयारी चरण)</b> 3 से 7 दिनों तक औषधीय घृत से स्नेहन किया जाता है ताकि दोष ढीले हों। स्वेदन से विषैले तत्व द्रव रूप में आते हैं।</p>
+                <p><b>चरण 2: प्रधान कर्म (मुख्य प्रक्रिया)</b> रोगी को काढ़ा या दूध दिया जाता है। मदनफल जैसी औषधियों से नियंत्रित वमन कराया जाता है। इस दौरान चिकित्सक वमन की संख्या और शुद्धि के लक्षणों पर निगरानी रखता है।</p>
+                <p><b>चरण 3: पश्चात कर्म (उपचार के बाद की देखभाल)</b> प्रक्रिया के बाद खिचड़ी जैसे हल्के आहार की सलाह दी जाती है। विश्राम आवश्यक है, ठंडा और भारी भोजन टालना चाहिए, और रोगी धीरे-धीरे सामान्य आहार पर लौटता है।</p>
+                <p><b>सावधानियाँ</b></p>
+                <p>वमन केवल विशेषज्ञ की देखरेख में ही करना चाहिए और घर पर कभी नहीं करना चाहिए। बुखार, कमजोरी और गर्भावस्था में इससे बचना चाहिए।</p>
+                <p><b>वमन थेरेपी के लाभ</b></p>
+                <p>यह श्वसन तंत्र को साफ करने, त्वचा स्वास्थ्य सुधारने, पाचन बढ़ाने, गहरे विषैले तत्व हटाने और कफ दोष संतुलित करने में मदद करती है।</p>
+                <img id="vamanaStaticImg" src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
+            `,
+            virechana: `
+                <p><b>विरेचन थेरेपी क्या है?</b></p>
+                <p>विरेचन थेरेपी आयुर्वेद की एक शोधन प्रक्रिया है और पंचकर्म की पाँच मुख्य चिकित्सा पद्धतियों में से एक है। विरेचन का अर्थ नियंत्रित शुद्धि या चिकित्सीय रेचन है, जो शरीर से अतिरिक्त पित्त, गर्मी, पित्त रस और चयापचय संबंधी विषैले तत्वों को आँतों के माध्यम से बाहर निकालता है।</p>
+                <p><b>विरेचन थेरेपी का उद्देश्य</b></p>
+                <p>विरेचन यकृत और आँतों की शुद्धि, अतिरिक्त पित्त हटाने, रक्त शुद्धि तथा पाचन और मेटाबॉलिज्म सुधारने में सहायक है।</p>
+                <p><b>किन रोगों में उपयोगी</b></p>
+                <p>यह मुंहासे, एक्जिमा, सोरायसिस, यकृत विकार, अम्लता, अल्सर, पीलिया, पुराना सिरदर्द और अन्य पित्त असंतुलन समस्याओं में उपयोगी है।</p>
+                <p><b>विरेचन थेरेपी के लिए आवश्यकताएँ</b></p>
+                <p><b>1. रोगी की आवश्यकता:</b> रोगी में मध्यम शक्ति और अच्छा पाचन होना चाहिए। यह सामान्यतः बच्चों, गर्भवती महिलाओं तथा बहुत कमजोर या डिहाइड्रेटेड व्यक्तियों के लिए उपयुक्त नहीं है।</p>
+                <p><b>2. आवश्यक सामग्री:</b> औषधीय घृत, त्रिवृत या एरंड तेल जैसे रेचक, गुनगुना पानी, खिचड़ी या मांड जैसे हल्के खाद्य पदार्थ और उचित शौच सुविधा।</p>
+                <p><b>3. वातावरण:</b> स्वच्छ और शांत कमरा उपयुक्त है, सुबह का समय आदर्श माना जाता है, और प्रक्रिया आयुर्वेदिक चिकित्सक की देखरेख में होनी चाहिए।</p>
+                <p><b>विरेचन थेरेपी की प्रक्रिया</b></p>
+                <p><b>चरण 1: पूर्व कर्म (तैयारी चरण)</b> 3 से 7 दिनों तक औषधीय घृत से स्नेहन किया जाता है। स्वेदन द्वारा दोष ढीले किए जाते हैं।</p>
+                <p><b>चरण 2: प्रधान कर्म (मुख्य प्रक्रिया)</b> रोगी को रेचक औषधि दी जाती है जिससे मल त्याग की प्रक्रिया बढ़ती है। बार-बार शौच से विषैले तत्व बाहर निकलते हैं और चिकित्सक शुद्धि के संकेतों पर नज़र रखता है।</p>
+                <p><b>चरण 3: पश्चात कर्म (उपचार के बाद की देखभाल)</b> खिचड़ी या सूप जैसे हल्के आहार, पर्याप्त विश्राम, जल सेवन और सामान्य भोजन की ओर धीरे-धीरे वापसी की सलाह दी जाती है।</p>
+                <p><b>सावधानियाँ</b></p>
+                <p>विरेचन हमेशा विशेषज्ञ की देखरेख में ही करना चाहिए। बुखार, दस्त और गर्भावस्था में इससे बचना चाहिए, तथा इसे स्वयं नहीं करना चाहिए।</p>
+                <p><b>विरेचन थेरेपी के लाभ</b></p>
+                <p>यह पाचन तंत्र की शुद्धि, त्वचा स्वास्थ्य सुधार, पित्त दोष संतुलन, यकृत डिटॉक्स और मेटाबॉलिज्म बेहतर करने में मदद करती है।</p>
+                <img id="virechanaStaticImg" src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
+            `,
+            basti: `
+                <p><b>बस्ति थेरेपी क्या है?</b></p>
+                <p>बस्ति थेरेपी आयुर्वेद की सबसे महत्वपूर्ण चिकित्सा पद्धतियों में से एक है और पंचकर्म की प्रमुख प्रक्रिया है। बस्ति का अर्थ औषधीय एनीमा है, जिसमें औषधीय तेल या काढ़ा मलाशय के माध्यम से देकर कोलन की शुद्धि की जाती है और वात दोष संतुलित किया जाता है।</p>
+                <p><b>बस्ति थेरेपी का उद्देश्य</b></p>
+                <p>बस्ति बड़ी आँत की शुद्धि, शरीर से विषैले तत्व हटाने, वात दोष संतुलित करने और शरीर के ऊतकों को पोषण देने में सहायक है।</p>
+                <p><b>किन रोगों में उपयोगी</b></p>
+                <p>यह पुरानी कब्ज, आर्थराइटिस, कमर दर्द, साइटिका, तंत्रिका विकार और पाचन समस्याओं में लाभकारी है।</p>
+                <p><b>बस्ति थेरेपी के लिए आवश्यकताएँ</b></p>
+                <p><b>1. रोगी की आवश्यकता:</b> रोगी का पेट हल्का हो और वह शांत एवं रिलैक्स रहे। यह सामान्यतः गर्भवती महिलाओं, गंभीर दस्त वाले रोगियों और बहुत कमजोर व्यक्तियों के लिए उपयुक्त नहीं होती।</p>
+                <p><b>2. आवश्यक सामग्री:</b> औषधीय तेल जैसे हर्बल ऑयल या अनु तैल, अथवा हर्बल काढ़ा, बस्ति पात्र, एनीमा बैग या कैथेटर, लुब्रिकेंट, तौलिये और बिस्तर।</p>
+                <p><b>3. वातावरण:</b> स्वच्छ, गर्म और शांत कमरा उपयुक्त होता है, और उपचार प्रशिक्षित आयुर्वेदिक विशेषज्ञ की निगरानी में होना चाहिए।</p>
+                <p><b>बस्ति के प्रकार</b></p>
+                <p><b>निरूह बस्ति (काढ़ा बस्ति):</b> यह मुख्यतः शोधन के लिए उपयोग की जाती है।</p>
+                <p><b>अनुवासन बस्ति (तैल बस्ति):</b> यह पोषण और स्निग्धता के लिए उपयोग की जाती है।</p>
+                <p><b>बस्ति थेरेपी की प्रक्रिया</b></p>
+                <p><b>चरण 1: पूर्व कर्म (तैयारी)</b> हल्का अभ्यंग और हल्का स्वेदन किया जाता है।</p>
+                <p><b>चरण 2: प्रधान कर्म (मुख्य प्रक्रिया)</b> रोगी को बाईं करवट लिटाया जाता है, चिकनाया हुआ कैथेटर धीरे से डाला जाता है, और औषधीय तेल या काढ़ा अंदर दिया जाता है। रोगी दवा को कुछ समय तक रोके रखता है।</p>
+                <p><b>चरण 3: पश्चात कर्म (बाद की देखभाल)</b> स्वाभाविक मल त्याग होने दिया जाता है, खिचड़ी या सूप जैसे हल्के आहार की सलाह दी जाती है, और उचित विश्राम आवश्यक है।</p>
+                <p><b>सावधानियाँ</b></p>
+                <p>बस्ति विशेषज्ञ द्वारा ही करनी चाहिए। दस्त, बुखार और रक्तस्राव विकारों में इससे बचना चाहिए, तथा उपचार से पहले और बाद में भारी भोजन नहीं लेना चाहिए।</p>
+                <p><b>बस्ति थेरेपी के लाभ</b></p>
+                <p>यह कब्ज दूर करने, जोड़ों और कमर दर्द कम करने, पाचन सुधारने, तंत्रिका तंत्र को मजबूत करने और कोलन की शुद्धि में मदद करती है।</p>
+                <img id="bastiStaticImg" src="images/Basti_Therapy.jpg" class="therapy-img" alt="Basti therapy">
+            `,
+            nasya: `
+                <p><b>नस्य थेरेपी क्या है?</b></p>
+                <p>नस्य थेरेपी आयुर्वेद की एक महत्वपूर्ण शोधन चिकित्सा है और पंचकर्म की प्रक्रियाओं में से एक है। नस्य का अर्थ है नाक के माध्यम से औषधि देना। इसका मुख्य उपयोग सिर, मस्तिष्क और श्वसन तंत्र से संबंधित विकारों की शुद्धि और उपचार में होता है।</p>
+                <p><b>नस्य थेरेपी का उद्देश्य</b></p>
+                <p>नस्य नासिका मार्गों की सफाई, सिर क्षेत्र से विषैले तत्वों को हटाने, श्वास में सुधार, तथा स्मरण शक्ति और मस्तिष्क कार्यक्षमता बढ़ाने में सहायक है।</p>
+                <p><b>किन रोगों में उपयोगी</b></p>
+                <p>यह साइनसाइटिस, सिरदर्द और माइग्रेन, सर्दी-खांसी, एलर्जी, बाल झड़ना, समय से पहले सफेद बाल और कुछ नेत्र एवं कान विकारों में उपयोगी है।</p>
+                <p><b>नस्य थेरेपी के लिए आवश्यकताएँ</b></p>
+                <p><b>1. रोगी की आवश्यकता:</b> रोगी शांत और आराम की स्थिति में हो, और भोजन के तुरंत बाद नस्य नहीं करना चाहिए। यह छोटे बच्चों, कुछ गर्भवती महिलाओं और बहुत कमजोर रोगियों के लिए उपयुक्त नहीं हो सकती।</p>
+                <p><b>2. आवश्यक सामग्री:</b> अनु तैल, घृत या हर्बल ऑयल, ड्रॉपर या चम्मच, तौलिया, गुनगुना पानी और सिर को पीछे झुकाने के लिए तकिया।</p>
+                <p><b>3. वातावरण:</b> स्वच्छ, शांत और गर्म वातावरण उपयुक्त है, और यह प्रक्रिया विशेषज्ञ की देखरेख में की जानी चाहिए।</p>
+                <p><b>नस्य थेरेपी की प्रक्रिया</b></p>
+                <p><b>चरण 1: पूर्व कर्म (तैयारी)</b> चेहरे की तेल मालिश और भाप द्वारा नासिका मार्ग खोले जाते हैं।</p>
+                <p><b>चरण 2: प्रधान कर्म (मुख्य प्रक्रिया)</b> रोगी को सिर पीछे झुकाकर लिटाया जाता है। औषधीय तेल की बूंदें नथुनों में डाली जाती हैं, रोगी धीरे से श्वास लेता है और गले में आए श्लेष्मा या दोष बाहर निकालता है।</p>
+                <p><b>चरण 3: पश्चात कर्म (बाद की देखभाल)</b> गुनगुने पानी से गरारे करने, विश्राम करने तथा धूल, ठंडी हवा और भारी भोजन से बचने की सलाह दी जाती है।</p>
+                <p><b>सावधानियाँ</b></p>
+                <p>नस्य प्रशिक्षित चिकित्सक द्वारा ही की जानी चाहिए। भोजन के तुरंत बाद, बुखार में, अत्यधिक नाक बंद होने पर या बार-बार प्रयोग करने से बचना चाहिए।</p>
+                <p><b>नस्य थेरेपी के लाभ</b></p>
+                <p>यह साइनस और नाक अवरोध कम करने, स्मरण शक्ति सुधारने, बालों की जड़ों को मजबूत करने, सिरदर्द में राहत देने और वाणी व दृष्टि को बेहतर बनाने में सहायक है।</p>
+                <img id="nasyaStaticImg" src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
+            `,
+            rakta: `
+                <p><b>रक्तमोक्षण थेरेपी क्या है?</b></p>
+                <p>रक्तमोक्षण आयुर्वेद की रक्त शुद्धि चिकित्सा है और पंचकर्म से संबंधित महत्वपूर्ण शोधन प्रक्रियाओं में से एक है। इसका उपयोग विशेष रूप से पित्त संबंधी विकारों में अशुद्ध रक्त और विषैले तत्वों को रक्त प्रवाह से निकालने के लिए किया जाता है।</p>
+                <p><b>रक्तमोक्षण का उद्देश्य</b></p>
+                <p>यह रक्त की शुद्धि, रक्त प्रवाह से विषैले तत्वों को हटाने, पित्त दोष संतुलित करने और त्वचा स्वास्थ्य सुधारने में सहायक है।</p>
+                <p><b>किन रोगों में उपयोगी</b></p>
+                <p>रक्तमोक्षण का उपयोग मुंहासे, एक्जिमा, सोरायसिस, फोड़े-फुंसी, अल्सर, गठिया, पिग्मेंटेशन विकार, कुछ उच्च रक्तचाप स्थितियों और रक्त संबंधी विकारों में किया जाता है।</p>
+                <p><b>रक्तमोक्षण के लिए आवश्यकताएँ</b></p>
+                <p><b>1. रोगी की आवश्यकता:</b> रोगी शारीरिक रूप से सक्षम और स्थिर होना चाहिए। यह एनीमिया, बहुत कमजोरी, गर्भावस्था तथा बहुत कमजोर बच्चों और वृद्धों में सामान्यतः टाला जाता है।</p>
+                <p><b>2. आवश्यक सामग्री:</b> विधि के अनुसार जोंक, नस चीरा देने के लिए स्टरल ब्लेड या स्कैल्पेल, कपिंग उपकरण, रूई, गॉज, एंटीसेप्टिक और हर्बल दवाएँ उपयोग में आती हैं।</p>
+                <p><b>3. वातावरण:</b> स्वच्छ, हाइजीनिक और स्टरल व्यवस्था आवश्यक है, और उपचार प्रशिक्षित आयुर्वेदिक चिकित्सक द्वारा किया जाना चाहिए।</p>
+                <p><b>रक्तमोक्षण की विधियाँ</b></p>
+                <p><b>1. जलौकावचारण (जोंक चिकित्सा):</b> प्रभावित क्षेत्र पर जोंक लगाई जाती है, जो अशुद्ध रक्त को धीरे-धीरे निकालती है।</p>
+                <p><b>2. सिराव्यध (वेनीसेक्शन):</b> नियंत्रित रूप से रक्त निकालने के लिए नस पर छोटा चीरा लगाया जाता है।</p>
+                <p><b>3. अलाबु (कपिंग विधि):</b> त्वचा की सतह से अशुद्ध रक्त निकालने के लिए सक्शन का उपयोग किया जाता है।</p>
+                <p><b>रक्तमोक्षण की प्रक्रिया</b></p>
+                <p><b>चरण 1: पूर्व कर्म (तैयारी)</b> प्रक्रिया से पहले हल्का अभ्यंग और मृदु स्वेदन किया जाता है।</p>
+                <p><b>चरण 2: प्रधान कर्म (मुख्य प्रक्रिया)</b> जोंक, चीरा या कपिंग जैसी उपयुक्त विधि चुनी जाती है और निरंतर निगरानी में नियंत्रित रूप से रक्त निकाला जाता है।</p>
+                <p><b>चरण 3: पश्चात कर्म (बाद की देखभाल)</b> घाव की सफाई और ड्रेसिंग की जाती है, हर्बल औषधियाँ लगाई जा सकती हैं, और हल्के आहार के साथ विश्राम की सलाह दी जाती है।</p>
+                <p><b>सावधानियाँ</b></p>
+                <p>रक्तमोक्षण केवल विशेषज्ञ द्वारा ही किया जाना चाहिए। एनीमिया, गर्भावस्था और अत्यधिक कमजोरी में इससे बचना चाहिए, तथा स्वच्छता और स्टरलाइजेशन का विशेष ध्यान रखना चाहिए।</p>
+                <p><b>रक्तमोक्षण के लाभ</b></p>
+                <p>यह रक्त की शुद्धि, त्वचा की चमक सुधारने, सूजन कम करने, पुराने त्वचा विकारों के प्रबंधन में सहायता करने और पित्त दोष संतुलित करने में मदद करता है।</p>
+                <img id="raktamokshanaStaticImg" src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
+            `
+        },
+        gu: {
+            vamana: `
+                <p><b>વમન થેરાપી શું છે?</b></p>
+                <p>વમન થેરાપી આયુર્વેદની વિશેષ શુદ્ધિકરણ પ્રક્રિયા છે અને પંચકર્મની પાંચ મુખ્ય સારવાર પદ્ધતિઓમાંની એક છે. વમનનો અર્થ નિયંત્રિત અને વૈજ્ઞાનિક રીતે કરાવવામાં આવતો ચિકિત્સાત્મક ઉલ્ટી પ્રક્રિયા છે, જેના દ્વારા વધારાનો કફ, શ્લેષ્મા અને ઝેરી તત્વો શરીરમાંથી બહાર કાઢવામાં આવે છે.</p>
+                <p><b>વમન થેરાપીનો હેતુ</b></p>
+                <p>વમનનો મુખ્ય ઉપયોગ વધારાનો કફ દૂર કરવા, ફેફસા અને જઠરનું શુદ્ધિકરણ કરવા, પાચન અને મેટાબોલિઝમ સુધારવા અને રોગપ્રતિકારક શક્તિમાં સહાય કરવા માટે થાય છે.</p>
+                <p><b>કયા રોગોમાં ઉપયોગી</b></p>
+                <p>આ થેરાપી દમ, લાંબી ખાંસી, એલર્જી, એક્ઝિમા અને સોરીયાસિસ જેવા ત્વચા રોગો, સ્થૂલતા અને સાઇનસની સમસ્યાઓમાં ઉપયોગી માનવામાં આવે છે.</p>
+                <p><b>વમન થેરાપી માટેની જરૂરિયાતો</b></p>
+                <p><b>1. દર્દીની જરૂરિયાત:</b> દર્દી શારીરિક રીતે તંદુરસ્ત હોવો જોઈએ અને તેનું પાચન મજબૂત હોવું જોઈએ. આ સામાન્ય રીતે બાળકો, અત્યંત નબળા વૃદ્ધો, ગર્ભવતી મહિલાઓ અને હૃદય રોગીઓ માટે યોગ્ય માનાતી નથી.</p>
+                <p><b>2. જરૂરી સામગ્રી:</b> આંતરિક સ્નેહન માટે ઔષધીય ઘી, મદનફળ અને જેઠીમધ જેવા હર્બલ કઢા, દૂધ અથવા મીઠું પાણી, વમન પાત્ર, ટુવાલ અને ઉકળેલું ગરમ પાણી.</p>
+                <p><b>3. વાતાવરણ:</b> સ્વચ્છ અને શાંત ઓરડો જરૂરી છે. સવારે ખાસ કરીને 6થી 8 વચ્ચેનો સમય યોગ્ય ગણાય છે અને પ્રક્રિયા પ્રશિક્ષિત આયુર્વેદિક ડૉક્ટરની દેખરેખમાં થવી જોઈએ.</p>
+                <p><b>વમન થેરાપીની પ્રક્રિયા</b></p>
+                <p><b>પગલું 1: પૂર્વ કર્મ (તૈયારી તબક્કો)</b> 3થી 7 દિવસ સુધી ઔષધીય ઘી વડે સ્નેહન કરવામાં આવે છે જેથી દોષ ઢીલા પડે. સ્વેદન દ્વારા ઝેરી તત્વો દ્રવરૂપ બને છે.</p>
+                <p><b>પગલું 2: મુખ્ય કર્મ (મુખ્ય પ્રક્રિયા)</b> દર્દીને હર્બલ કઢો અથવા દૂધ આપવામાં આવે છે. મદનફળ જેવી ઔષધિથી નિયંત્રિત ઉલ્ટી કરાવવામાં આવે છે. આ દરમિયાન ડૉક્ટર ઉલ્ટીની સંખ્યા અને શુદ્ધિના લક્ષણો પર નજર રાખે છે.</p>
+                <p><b>પગલું 3: પશ્ચાત કર્મ (થેરાપી પછીની કાળજી)</b> પ્રક્રિયા પછી ખીચડી જેવા હળવા આહારની સલાહ આપવામાં આવે છે. આરામ જરૂરી છે, ઠંડુ અને ભારે ખોરાક ટાળવો જોઈએ અને દર્દી ધીમે ધીમે સામાન્ય આહાર તરફ પાછો ફરે છે.</p>
+                <p><b>સાવચેતીઓ</b></p>
+                <p>વમન માત્ર નિષ્ણાતની દેખરેખ હેઠળ જ કરવું જોઈએ અને ઘરમાં ક્યારેય કરવું નહીં. તાવ, નબળાઈ અને ગર્ભાવસ્થા દરમિયાન આથી બચવું જોઈએ.</p>
+                <p><b>વમન થેરાપીના લાભો</b></p>
+                <p>આ શ્વસનતંત્રને સ્વચ્છ બનાવવા, ત્વચાનું આરોગ્ય સુધારવા, પાચન શક્તિ વધારવા, ઊંડા ઝેરી તત્વોને દૂર કરવા અને કફ દોષ સંતુલિત કરવામાં મદદ કરે છે.</p>
+                <img id="vamanaStaticImg" src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
+            `,
+            virechana: `
+                <p><b>વિરેચન થેરાપી શું છે?</b></p>
+                <p>વિરેચન થેરાપી આયુર્વેદની શુદ્ધિકરણ પ્રક્રિયા છે અને પંચકર્મની પાંચ મુખ્ય સારવાર પદ્ધતિઓમાંની એક છે. વિરેચનનો અર્થ નિયંત્રિત રીતે કરાતી જુલાબ પ્રક્રિયા છે, જેના દ્વારા વધારાનો પિત્ત, ગરમી, પિત્તરસ અને ચયાપચય સંબંધિત ઝેરી તત્વો આંતરડા મારફતે બહાર કાઢવામાં આવે છે.</p>
+                <p><b>વિરેચન થેરાપીનો હેતુ</b></p>
+                <p>વિરેચન યકૃત અને આંતરડાનું શુદ્ધિકરણ, વધારાનો પિત્ત દૂર કરવું, રક્ત શુદ્ધ કરવું અને પાચન તથા મેટાબોલિઝમ સુધારવામાં સહાયક છે.</p>
+                <p><b>કયા રોગોમાં ઉપયોગી</b></p>
+                <p>આ થેરાપી મુખાસા, એક્ઝિમા, સોરીયાસિસ, યકૃતના રોગો, એસિડિટી, અલ્સર, પીલિયા, જૂના માથાના દુખાવા અને અન્ય પિત્ત અસંતુલન સમસ્યાઓમાં ઉપયોગી છે.</p>
+                <p><b>વિરેચન થેરાપી માટેની જરૂરિયાતો</b></p>
+                <p><b>1. દર્દીની જરૂરિયાત:</b> દર્દીમાં મધ્યમ શક્તિ અને સારું પાચન હોવું જોઈએ. આ સામાન્ય રીતે બાળકો, ગર્ભવતી મહિલાઓ અને અત્યંત નબળા અથવા ડીહાઇડ્રેટેડ વ્યક્તિઓ માટે યોગ્ય નથી.</p>
+                <p><b>2. જરૂરી સામગ્રી:</b> ઔષધીય ઘી, ત્રિવૃત અથવા એરંડેલ જેવી જુલાબ ઔષધિઓ, ગરમ પાણી, ખીચડી અથવા મંડ જેવા હળવા ખાદ્યપદાર્થો અને યોગ્ય ટોયલેટ સુવિધા.</p>
+                <p><b>3. વાતાવરણ:</b> સ્વચ્છ અને શાંત ઓરડો વધુ યોગ્ય છે, સવારે સમય અનુકૂળ માનવામાં આવે છે, અને પ્રક્રિયા આયુર્વેદિક ડૉક્ટરની દેખરેખમાં થવી જોઈએ.</p>
+                <p><b>વિરેચન થેરાપીની પ્રક્રિયા</b></p>
+                <p><b>પગલું 1: પૂર્વ કર્મ (તૈયારી તબક્કો)</b> 3થી 7 દિવસ સુધી ઔષધીય ઘીથી સ્નેહન કરવામાં આવે છે. સ્વેદનથી દોષ ઢીલા પડે છે.</p>
+                <p><b>પગલું 2: મુખ્ય કર્મ (મુખ્ય પ્રક્રિયા)</b> દર્દીને જુલાબ ઔષધિ આપવામાં આવે છે, જેના કારણે વારંવાર શૌચ થાય છે. આ રીતે ઝેરી તત્વો બહાર આવે છે અને ડૉક્ટર શુદ્ધિના લક્ષણોનું નિરીક્ષણ કરે છે.</p>
+                <p><b>પગલું 3: પશ્ચાત કર્મ (થેરાપી પછીની કાળજી)</b> ખીચડી અથવા સૂપ જેવા હળવા આહાર, પૂરતો આરામ, પાણી પીવું અને ધીમે ધીમે સામાન્ય ખોરાક તરફ પાછા ફરવાની સલાહ આપવામાં આવે છે.</p>
+                <p><b>સાવચેતીઓ</b></p>
+                <p>વિરેચન હંમેશા નિષ્ણાતની દેખરેખ હેઠળ જ કરવું જોઈએ. તાવ, ડાયરીયા અને ગર્ભાવસ્થા દરમિયાન આથી બચવું જોઈએ અને તેને સ્વયં કરવું નહીં.</p>
+                <p><b>વિરેચન થેરાપીના લાભો</b></p>
+                <p>આ પાચનતંત્ર શુદ્ધ કરવા, ત્વચાનું આરોગ્ય સુધારવા, પિત્ત દોષ સંતુલિત કરવા, યકૃત ડિટૉક્સમાં મદદ કરવા અને મેટાબોલિઝમ સુધારવામાં સહાય કરે છે.</p>
+                <img id="virechanaStaticImg" src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
+            `,
+            basti: `
+                <p><b>બસ્તી થેરાપી શું છે?</b></p>
+                <p>બસ્તી થેરાપી આયુર્વેદની અત્યંત મહત્વપૂર્ણ સારવાર છે અને પંચકર્મની મુખ્ય પ્રક્રિયાઓમાંની એક છે. બસ્તીનો અર્થ ઔષધીય એનિમા છે, જેમાં ઔષધીય તેલ અથવા કઢો ગુદા માર્ગે આપી કોલનનું શુદ્ધિકરણ કરવામાં આવે છે અને વાત દોષ સંતુલિત થાય છે.</p>
+                <p><b>બસ્તી થેરાપીનો હેતુ</b></p>
+                <p>બસ્તી મોટી આંત્રની સફાઈ, શરીરમાંથી ઝેરી તત્વો દૂર કરવું, વાત દોષ સંતુલિત કરવું અને શરીરના તંતુઓને પોષણ આપવું માટે ઉપયોગી છે.</p>
+                <p><b>કયા રોગોમાં ઉપયોગી</b></p>
+                <p>આ લાંબી કબજિયાત, આર્થરાઇટિસ, કમરદુખાવો, સાયાટિકા, નર્વસ સિસ્ટમના રોગો અને પાચન સમસ્યાઓમાં ઉપયોગી છે.</p>
+                <p><b>બસ્તી થેરાપી માટેની જરૂરિયાતો</b></p>
+                <p><b>1. દર્દીની જરૂરિયાત:</b> દર્દીનું પેટ હળવું હોવું જોઈએ અને તે શાંત તથા આરામમાં હોવો જોઈએ. આ સામાન્ય રીતે ગર્ભવતી મહિલાઓ, ગંભીર ડાયરીયા ધરાવતા લોકો અને અત્યંત નબળા દર્દીઓ માટે યોગ્ય નથી.</p>
+                <p><b>2. જરૂરી સામગ્રી:</b> હર્બલ ઓઇલ અથવા અનુ તૈલ જેવા ઔષધીય તેલ, અથવા હર્બલ કઢો, બસ્તી પોટ, એનિમા બેગ અથવા કેથેટર, લ્યુબ્રિકન્ટ, ટુવાલ અને પથારી.</p>
+                <p><b>3. વાતાવરણ:</b> સ્વચ્છ, ગરમ અને શાંત ઓરડો યોગ્ય ગણાય છે, અને થેરાપી પ્રશિક્ષિત આયુર્વેદિક નિષ્ણાતની દેખરેખમાં થવી જોઈએ.</p>
+                <p><b>બસ્તીના પ્રકારો</b></p>
+                <p><b>નિરુહ બસ્તી (કઢા બસ્તી):</b> મુખ્યત્વે શરીર શુદ્ધિકરણ માટે ઉપયોગમાં લેવાય છે.</p>
+                <p><b>અનુવાસન બસ્તી (તેલ બસ્તી):</b> મુખ્યત્વે પોષણ અને સ્નિગ્ધતા માટે ઉપયોગમાં લેવાય છે.</p>
+                <p><b>બસ્તી થેરાપીની પ્રક્રિયા</b></p>
+                <p><b>પગલું 1: પૂર્વ કર્મ (તૈયારી)</b> હળવો અભ્યંગ અને હળવું સ્વેદન કરવામાં આવે છે.</p>
+                <p><b>પગલું 2: મુખ્ય કર્મ (મુખ્ય પ્રક્રિયા)</b> દર્દીને ડાબી બાજુ સુવડાવવામાં આવે છે, ચીકણું કરાયેલ કેથેટર ધીમેથી અંદર મૂકવામાં આવે છે અને ઔષધીય તેલ અથવા કઢો આપવામાં આવે છે. દર્દી દવાને થોડો સમય અંદર રાખે છે.</p>
+                <p><b>પગલું 3: પશ્ચાત કર્મ (પછીની કાળજી)</b> સ્વાભાવિક વિસર્જન થવા દેવામાં આવે છે, ખીચડી અથવા સૂપ જેવા હળવા આહારની સલાહ આપવામાં આવે છે અને પૂરતો આરામ જરૂરી છે.</p>
+                <p><b>સાવચેતીઓ</b></p>
+                <p>બસ્તી નિષ્ણાત દ્વારા જ કરવી જોઈએ. ડાયરીયા, તાવ અને બ્લીડિંગ ડિસઓર્ડરમાં આથી બચવું જોઈએ અને સારવાર પહેલા તથા પછી ભારે ભોજન ટાળવું જોઈએ.</p>
+                <p><b>બસ્તી થેરાપીના લાભો</b></p>
+                <p>આ કબજિયાતમાં રાહત, સાંધા અને કમરના દુખાવામાં ઘટાડો, પાચન સુધારવું, નર્વસ સિસ્ટમને મજબૂત બનાવવું અને કોલનનું શુદ્ધિકરણ કરવામાં મદદ કરે છે.</p>
+                <img id="bastiStaticImg" src="images/Basti_Therapy.jpg" class="therapy-img" alt="Basti therapy">
+            `,
+            nasya: `
+                <p><b>નસ્ય થેરાપી શું છે?</b></p>
+                <p>નસ્ય થેરાપી આયુર્વેદની મહત્વપૂર્ણ શુદ્ધિકરણ સારવાર છે અને પંચકર્મની પ્રક્રિયાઓમાંની એક છે. નસ્યનો અર્થ નાક મારફતે દવા આપવી છે. તેનો મુખ્ય ઉપયોગ માથું, મગજ અને શ્વસનતંત્ર સંબંધિત રોગોની સફાઈ અને સારવારમાં થાય છે.</p>
+                <p><b>નસ્ય થેરાપીનો હેતુ</b></p>
+                <p>નસ્ય નાસિકાપથોની સફાઈ, માથાના વિસ્તારમાંથી ઝેરી તત્વો દૂર કરવું, શ્વાસમાં સુધારો લાવવો અને મગજની કાર્યક્ષમતા તથા સ્મરણશક્તિ વધારવામાં સહાયક છે.</p>
+                <p><b>કયા રોગોમાં ઉપયોગી</b></p>
+                <p>આ સાઇનસાઇટિસ, માથાનો દુખાવો અને માઇગ્રેન, ઠંડ-ઉધરસ, એલર્જી, વાળ ખરવા, વહેલી સફેદી અને કેટલાક આંખ-કાનના રોગોમાં ઉપયોગી છે.</p>
+                <p><b>નસ્ય થેરાપી માટેની જરૂરિયાતો</b></p>
+                <p><b>1. દર્દીની જરૂરિયાત:</b> દર્દી શાંત અને આરામમાં હોવો જોઈએ અને ભોજન પછી તરત નસ્ય ન કરવું જોઈએ. આ નાનાં બાળકો, કેટલીક ગર્ભવતી મહિલાઓ અને અત્યંત નબળા દર્દીઓ માટે યોગ્ય ન હોઈ શકે.</p>
+                <p><b>2. જરૂરી સામગ્રી:</b> અનુ તૈલ, ઘી અથવા હર્બલ ઓઇલ, ડ્રોપર અથવા ચમચી, ટુવાલ, ગરમ પાણી અને માથું પાછળ ઝુકાવવા માટે તકલિયો.</p>
+                <p><b>3. વાતાવરણ:</b> સ્વચ્છ, શાંત અને ગરમ વાતાવરણ યોગ્ય છે, અને પ્રક્રિયા નિષ્ણાતની દેખરેખમાં થવી જોઈએ.</p>
+                <p><b>નસ્ય થેરાપીની પ્રક્રિયા</b></p>
+                <p><b>પગલું 1: પૂર્વ કર્મ (તૈયારી)</b> ચહેરાની તેલ મસાજ અને વરાળથી નાસિકામાર્ગ ખોલવામાં આવે છે.</p>
+                <p><b>પગલું 2: મુખ્ય કર્મ (મુખ્ય પ્રક્રિયા)</b> દર્દીને માથું પાછળ ઝુકાવી સુવડાવવામાં આવે છે. ઔષધીય તેલની ટીપાં નાકમાં મુકવામાં આવે છે, દર્દી ધીમેથી શ્વાસ લે છે અને ગળામાં આવેલા કફ અથવા દોષને બહાર કાઢે છે.</p>
+                <p><b>પગલું 3: પશ્ચાત કર્મ (પછીની કાળજી)</b> ગરમ પાણીથી કૂળા કરવાની, આરામ કરવાની અને ધૂળ, ઠંડી હવા તથા ભારે ખોરાકથી બચવાની સલાહ આપવામાં આવે છે.</p>
+                <p><b>સાવચેતીઓ</b></p>
+                <p>નસ્ય પ્રશિક્ષિત નિષ્ણાત દ્વારા જ કરવી જોઈએ. ભોજન પછી તરત, તાવ દરમિયાન, ભારે નાક બંધ હોય ત્યારે અથવા વારંવાર ઉપયોગ કરવાથી બચવું જોઈએ.</p>
+                <p><b>નસ્ય થેરાપીના લાભો</b></p>
+                <p>આ સાઇનસ અને નાકના અવરોધમાં રાહત, સ્મરણશક્તિમાં સુધારો, વાળની જડોને મજબૂત બનાવવામાં, માથાના દુખાવામાં રાહત અને વાણી તથા દૃષ્ટિમાં સુધારો કરવામાં મદદ કરે છે.</p>
+                <img id="nasyaStaticImg" src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
+            `,
+            rakta: `
+                <p><b>રક્તમોક્ષણ થેરાપી શું છે?</b></p>
+                <p>રક્તમોક્ષણ આયુર્વેદની રક્ત શુદ્ધિકરણ સારવાર છે અને પંચકર્મ સાથે સંબંધિત મહત્વપૂર્ણ શુદ્ધિકરણ પ્રક્રિયાઓમાંની એક છે. તેનો ઉપયોગ ખાસ કરીને પિત્ત સંબંધિત રોગોમાં અશુદ્ધ રક્ત અને ઝેરી તત્વોને રક્તપ્રવાહમાંથી દૂર કરવા માટે થાય છે.</p>
+                <p><b>રક્તમોક્ષણનો હેતુ</b></p>
+                <p>આ રક્ત શુદ્ધ કરવું, રક્તપ્રવાહમાંથી ઝેરી તત્વો દૂર કરવું, પિત્ત દોષ સંતુલિત કરવું અને ત્વચાનું આરોગ્ય સુધારવામાં સહાયક છે.</p>
+                <p><b>કયા રોગોમાં ઉપયોગી</b></p>
+                <p>રક્તમોક્ષણનો ઉપયોગ મુખાસા, એક્ઝિમા, સોરીયાસિસ, ફોડા-ફૂંસી, અલ્સર, ગાઉટ, પિગ્મેન્ટેશન સમસ્યાઓ, કેટલીક હાઇપરટેન્શન પરિસ્થિતિઓ અને રક્ત સંબંધિત રોગોમાં થાય છે.</p>
+                <p><b>રક્તમોક્ષણ માટેની જરૂરિયાતો</b></p>
+                <p><b>1. દર્દીની જરૂરિયાત:</b> દર્દી શારીરિક રીતે સ્થિર અને યોગ્ય શક્તિ ધરાવતો હોવો જોઈએ. આ સામાન્ય રીતે એનિમિયા, અત્યંત નબળાઈ, ગર્ભાવસ્થા અને નબળા બાળકો તથા વૃદ્ધોમાં ટાળવામાં આવે છે.</p>
+                <p><b>2. જરૂરી સામગ્રી:</b> પદ્ધતિ મુજબ જલૌકા, સ્ટેરાઇલ બ્લેડ અથવા સ્કેલ્પેલ, કપિંગ માટે સક્શન સાધનો, કપાસ, ગોઝ, એન્ટીસેપ્ટિક અને હર્બલ દવાઓ ઉપયોગમાં આવે છે.</p>
+                <p><b>3. વાતાવરણ:</b> સ્વચ્છ, હાઇજીનિક અને સ્ટેરાઇલ વ્યવસ્થા જરૂરી છે, અને સારવાર પ્રશિક્ષિત આયુર્વેદિક ડૉક્ટર દ્વારા થવી જોઈએ.</p>
+                <p><b>રક્તમોક્ષણની પદ્ધતિઓ</b></p>
+                <p><b>1. જલૌકાવચારણ (લીચ થેરાપી):</b> અસરગ્રસ્ત ભાગ પર જલૌકા લગાવવામાં આવે છે, જે અશુદ્ધ રક્ત ધીમે ધીમે ચૂસે છે.</p>
+                <p><b>2. સિરાવ્યધ (વેનીસેક્શન):</b> નિયંત્રિત રીતે રક્ત કાઢવા માટે શિરામાં નાનું ચીરું આપવામાં આવે છે.</p>
+                <p><b>3. અલાબુ (કપિંગ પદ્ધતિ):</b> ત્વચાની સપાટી પરથી અશુદ્ધ રક્ત કાઢવા માટે સક્શનનો ઉપયોગ થાય છે.</p>
+                <p><b>રક્તમોક્ષણની પ્રક્રિયા</b></p>
+                <p><b>પગલું 1: પૂર્વ કર્મ (તૈયારી)</b> પ્રક્રિયા પહેલા હળવો અભ્યંગ અને મૃદુ સ્વેદન કરવામાં આવે છે.</p>
+                <p><b>પગલું 2: મુખ્ય કર્મ (મુખ્ય પ્રક્રિયા)</b> જલૌકા, ચીરું અથવા કપિંગ જેવી યોગ્ય પદ્ધતિ પસંદ કરી સતત દેખરેખમાં નિયંત્રિત રીતે રક્ત કાઢવામાં આવે છે.</p>
+                <p><b>પગલું 3: પશ્ચાત કર્મ (પછીની કાળજી)</b> ઘા સાફ કરી ડ્રેસિંગ કરવામાં આવે છે, હર્બલ દવાઓ લગાડવામાં આવી શકે છે અને હળવા આહાર સાથે આરામની સલાહ આપવામાં આવે છે.</p>
+                <p><b>સાવચેતીઓ</b></p>
+                <p>રક્તમોક્ષણ માત્ર નિષ્ણાત દ્વારા જ કરવું જોઈએ. એનિમિયા, ગર્ભાવસ્થા અને અત્યંત નબળાઈમાં આથી બચવું જોઈએ અને સફાઈ તથા સ્ટેરિલાઇઝેશનનું ખાસ ધ્યાન રાખવું જોઈએ.</p>
+                <p><b>રક્તમોક્ષણના લાભો</b></p>
+                <p>આ રક્ત શુદ્ધ કરવામાં, ત્વચાનો તેજ વધારવામાં, સોજો ઘટાડવામાં, જૂની ત્વચા સમસ્યાના સંચાલનમાં મદદ કરવા અને પિત્ત દોષ સંતુલિત કરવા સહાયક છે.</p>
+                <img id="raktamokshanaStaticImg" src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
+            `
+        }
+    };
+
+    function tr(key, vars={}){
+        const pack = packs[currentLanguage] || packs.en;
+        let text = pack[key] || packs.en[key] || key;
+        Object.keys(vars).forEach((name)=>{
+            text = text.replace(new RegExp("\\{" + name + "\\}", "g"), vars[name]);
+        });
+        return text;
+    }
+
+    function setText(selector, key, vars){
+        const el = document.querySelector(selector);
+        if(el){ el.textContent = tr(key, vars); }
+    }
+
+    function setPlaceholder(selector, key){
+        const el = document.querySelector(selector);
+        if(el){ el.placeholder = tr(key); }
+    }
+
+    function setSelectText(selectId, labelMap){
+        const select = document.getElementById(selectId);
+        if(!select){ return; }
+        Array.from(select.options).forEach((option)=>{
+            if(labelMap[option.value] || option.value === ""){
+                option.textContent = tr(labelMap[option.value] || labelMap[""]);
+            }
+        });
+    }
+
+    function updateCheckboxLabels(containerSelector, labels){
+        document.querySelectorAll(containerSelector).forEach((label, index)=>{
+            const checkbox = label.querySelector("input");
+            if(!checkbox || !labels[index]){ return; }
+            label.innerHTML = "";
+            label.appendChild(checkbox);
+            label.append(" " + labels[index]);
+        });
+    }
+
+    function translateProgress(value){
+        if(value === "Completed"){ return tr("progress.completed"); }
+        return tr("progress.not_started");
+    }
+
+    function translateIssue(value){
+        const map = {
+            respiratory:"appointment.issue.respiratory",
+            digestive:"appointment.issue.digestive",
+            joint:"appointment.issue.joint",
+            sinus:"appointment.issue.sinus",
+            skin:"appointment.issue.skin",
+            blood:"appointment.issue.blood",
+            general:"appointment.issue.general"
+        };
+        return map[value] ? tr(map[value]) : value;
+    }
+
+    function formatDoctorStatus(status, doctorName){
+        return (status || tr("appointment.pending")) + " with Dr. " + (doctorName || tr("appointment.assigned_doctor"));
+    }
+
+    function renderTherapyDetails(){
+        const content = currentLanguage === "en" ? defaultTherapyHtml : therapyTranslations[currentLanguage];
+        if(!content){ return; }
+        const mappings = [
+            ["vamanaBox", content.vamana || defaultTherapyHtml.vamana],
+            ["virechanaBox", content.virechana || defaultTherapyHtml.virechana],
+            ["bastiBox", content.basti || defaultTherapyHtml.basti],
+            ["nasyaBox", content.nasya || defaultTherapyHtml.nasya],
+            ["raktaBox", content.rakta || defaultTherapyHtml.rakta]
+        ];
+        mappings.forEach(([id, html])=>{
+            const el = document.getElementById(id);
+            if(el){ el.innerHTML = html; }
+        });
+    }
+
+    function applyTranslations(){
+        document.documentElement.lang = currentLanguage;
+        const picker = document.getElementById("languageSelect");
+        if(picker){ picker.value = currentLanguage; }
+        setText("#navBackBtn","nav.back");
+        setText("#navForwardBtn","nav.forward");
+        setText("#navReloadBtn","nav.reload");
+        setText("#darkModeBtn","nav.dark");
+        setText("#languageLabel","nav.language");
+        setText(".text-center.mb-4 h2","title.main");
+        setText("#termsModal h4","terms.title");
+        document.querySelectorAll("#termsModal .terms-body p").forEach((el, index)=>{
+            el.textContent = tr("terms.line" + (index + 1));
+        });
+        setText("#termsModal button","common.close");
+        setText("#loginPage .text-center.mb-3 button:nth-child(1)","auth.login");
+        setText("#loginPage .text-center.mb-3 button:nth-child(2)","auth.register");
+        setText("#loginPage .text-center.mb-3 button:nth-child(3)","auth.doctor_login");
+        setPlaceholder("#loginName","auth.enter_name");
+        setPlaceholder("#loginEmail","auth.enter_email");
+        setPlaceholder("#loginPassword","auth.enter_password");
+        setText("label[for='showLoginPassword']","common.show_password");
+        setText("#loginForm .btn.w-100.my-2","auth.login");
+        setText("#loginForm .auth-divider","common.or");
+        const googleLoginBtn = document.getElementById("googleLoginBtn");
+        if(googleLoginBtn){ googleLoginBtn.innerHTML = '<span class="google-mark">G</span>' + tr("common.continue_google"); }
+        setPlaceholder("#nameInput","auth.name");
+        setPlaceholder("#emailInput","auth.enter_email");
+        setPlaceholder("#ageInput","auth.age");
+        setPlaceholder("#passwordInput","auth.create_password");
+        setText("label[for='showRegisterPassword']","common.show_password");
+        const registerTerms = document.querySelector("#registerForm .form-check-label");
+        if(registerTerms){ registerTerms.innerHTML = tr("auth.agree_prefix") + ' <a href="#" onclick="openTerms(); return false;">' + tr("terms.title") + "</a>"; }
+        setText("#registerForm .btn.btn-success","auth.register");
+        setText("#doctorLoginPage h4","doctor.admin");
+        setText("#doctorLoginPage .text-center.mb-3 button:nth-child(1)","auth.doctor_login");
+        setText("#doctorLoginPage .text-center.mb-3 button:nth-child(2)","auth.doctor_register");
+        const doctorHint = document.getElementById("doctorEmailHint");
+        if(doctorHint && doctorHint.textContent.trim() === "No doctor registered yet"){ doctorHint.textContent = tr("doctor.none_registered"); }
+        setPlaceholder("#doctorEmail","doctor.email");
+        setPlaceholder("#doctorPassword","doctor.password");
+        setText("label[for='showDoctorLoginPassword']","common.show_password");
+        setText("#doctorLoginForm .auth-divider","common.or");
+        setText("#doctorLoginForm .btn.btn-dark","auth.doctor_login");
+        const doctorGoogleBtn = document.getElementById("doctorGoogleLoginBtn");
+        if(doctorGoogleBtn){ doctorGoogleBtn.innerHTML = '<span class="google-mark">G</span>' + tr("common.continue_google"); }
+        setText("#doctorRegisterForm .auth-note","doctor.register_note");
+        setPlaceholder("#doctorNameInput","doctor.name");
+        setPlaceholder("#doctorEmailInput","doctor.email");
+        setPlaceholder("#doctorHospitalInput","doctor.hospital");
+        setPlaceholder("#doctorPasswordInput","auth.create_password");
+        setText("label[for='showDoctorRegisterPassword']","common.show_password");
+        setText("#doctorRegisterForm .btn.btn-success","doctor.register");
+        setSelectText("doctorSpecialtyInput", {"":"doctor.specialty.select","Respiratory & Kapha Care":"doctor.specialty.respiratory","Digestive & Pitta Care":"doctor.specialty.digestive","Vata & Pain Care":"doctor.specialty.vata","ENT & Head Care":"doctor.specialty.ent","Skin & Blood Purification":"doctor.specialty.skin","General Panchakarma":"doctor.specialty.general"});
+        setText(".dashboard-kicker","dashboard.kicker");
+        setText(".dashboard-brand h4","dashboard.quick");
+        setText(".dashboard-brand p","dashboard.sidebar_desc");
+        setText(".sidebar-link[data-page='dashboardPage']","dashboard.menu.dashboard");
+        setText(".sidebar-link[data-page='symptomPage']","dashboard.menu.analysis");
+        setText(".sidebar-link[data-page='resultPage']","dashboard.menu.result");
+        setText(".sidebar-link[data-page='appointmentPage']","dashboard.menu.appointment");
+        setText(".sidebar-link[data-page='panchakarmaPage']","dashboard.menu.panchakarma");
+        setText(".sidebar-link.logout-link","dashboard.menu.logout");
+        const dashboardTitle = document.querySelector("#dashboardPage h3");
+        const patientNameNode = document.getElementById("patientName");
+        const patientName = patientNameNode ? (patientNameNode.textContent || "").trim() : "";
+        if(dashboardTitle){
+            const prefix = tr("dashboard.welcome",{name:""}).trim();
+            dashboardTitle.innerHTML = prefix + ' <span id="patientName">' + patientName + "</span>";
+        }
+        setText(".dashboard-subtitle","dashboard.subtitle");
+        const tiles = document.querySelectorAll(".dashboard-tile");
+        [["dashboard.tile.analysis","dashboard.tile.analysis_desc"],["dashboard.tile.appointments","dashboard.tile.appointments_desc"],["dashboard.tile.guide","dashboard.tile.guide_desc"],["dashboard.tile.results","dashboard.tile.results_desc"],["dashboard.tile.personal","dashboard.tile.personal_desc"],["dashboard.tile.therapy","dashboard.tile.therapy_desc"]].forEach((pair, index)=>{
+            if(tiles[index]){
+                const strong = tiles[index].querySelector("strong");
+                const span = tiles[index].querySelector("span");
+                if(strong){ strong.textContent = tr(pair[0]); }
+                if(span){ span.textContent = tr(pair[1]); }
+            }
+        });
+        setText("#symptomPage h4","symptom.title");
+        setText("#symptomPage .question-subtitle","symptom.subtitle");
+        setText("#symptomPage button.btn-success.w-100","symptom.vata");
+        setText("#symptomPage button.btn-danger.w-100.mt-3","symptom.pitta");
+        setText("#symptomPage button.btn-primary.w-100.mt-3","symptom.kapha");
+        setText("#symptomPage .btn.btn-success.w-100.mt-3","symptom.analyze");
+        updateCheckboxLabels("#vataBox .symptom-item",[tr("symptom.dry_skin"),tr("symptom.anxiety"),tr("symptom.joint_pain"),tr("symptom.constipation"),tr("symptom.insomnia"),tr("symptom.cold_extremities"),tr("symptom.gas"),tr("symptom.irregular_appetite")]);
+        updateCheckboxLabels("#pittaBox .symptom-item",[tr("symptom.acidity"),tr("symptom.anger"),tr("symptom.skin_rashes"),tr("symptom.sweating"),tr("symptom.burning"),tr("symptom.loose_motions"),tr("symptom.hair_fall"),tr("symptom.irritability")]);
+        updateCheckboxLabels("#kaphaBox .symptom-item",[tr("symptom.weight_gain"),tr("symptom.laziness"),tr("symptom.cold_cough"),tr("symptom.water_retention"),tr("symptom.slow_digestion"),tr("symptom.excess_sleep"),tr("symptom.mucus"),tr("symptom.low_motivation")]);
+        setText("#resultPage h4","result.title");
+        setText("#resultPage p:nth-of-type(1) b","result.dominant");
+        setText("#resultPage h5","result.therapy");
+        setText("#resultPage p:nth-of-type(2) b","result.diet");
+        setText("#resultPage p:nth-of-type(3) b","result.progress");
+        setText("#resultPage .btn.btn-success","result.complete");
+        setText("#resultPage .btn.btn-dark","result.pdf");
+        setText("#doctorPage h4","doctor.admin");
+        setText("#doctorPage p:nth-of-type(1) b","doctor.label");
+        setText("#doctorPage p:nth-of-type(2) b","doctor.specialty_label");
+        setText("#doctorPage p:nth-of-type(3) b","doctor.patient");
+        setText("#doctorPage p:nth-of-type(4) b","doctor.dosha");
+        setText("#doctorPage p:nth-of-type(5) b","doctor.therapy_label");
+        setText("#doctorPage p:nth-of-type(6) b","doctor.progress_label");
+        setText("#doctorPage h5.mt-4","doctor.appointment_list");
+        setText("#doctorPage .btn.btn-danger","doctor.logout");
+        setText("#appointmentPage h4","appointment.title");
+        setSelectText("patientIssue", {"":"appointment.issue.select","respiratory":"appointment.issue.respiratory","digestive":"appointment.issue.digestive","joint":"appointment.issue.joint","sinus":"appointment.issue.sinus","skin":"appointment.issue.skin","blood":"appointment.issue.blood","general":"appointment.issue.general"});
+        setText("#appointmentPage .suggestion-card:first-of-type p.mb-2 strong","appointment.system_doctor");
+        setText("#appointmentPage .suggestion-card:first-of-type p.mb-0 strong","appointment.why");
+        setText("#manualDoctorHint","appointment.manual_hint");
+        setText("#appointmentPage .suggestion-card:last-of-type p strong","appointment.top_matches");
+        setText("#appointmentPage .btn.btn-success","appointment.confirm");
+        setText("#appointmentPage p.mt-3 b","appointment.status");
+        setText("#panchakarmaPage h3","panchakarma.title");
+        setText("#panchakarmaPage > .card > p","panchakarma.subtitle");
+        const therapyButtons = document.querySelectorAll("#panchakarmaPage > .card > button");
+        ["panchakarma.vamana","panchakarma.virechana","panchakarma.basti","panchakarma.nasya","panchakarma.rakta"].forEach((key, index)=>{
+            if(therapyButtons[index]){ therapyButtons[index].textContent = tr(key); }
+        });
+        renderTherapyDetails();
+    }
+
+    window.setLanguage = function(lang){
+        currentLanguage = packs[lang] ? lang : "en";
+        localStorage.setItem(LANGUAGE_KEY, currentLanguage);
+        applyTranslations();
+        if(typeof window.loadResult === "function"){ window.loadResult(); }
+        if(typeof window.updatePatientStatus === "function"){ window.updatePatientStatus(); }
+        if(typeof window.updateDoctorRecommendation === "function"){ window.updateDoctorRecommendation(); }
+        if(typeof window.loadAppointments === "function"){ window.loadAppointments(); }
+    };
+
+    const originalShowPage = window.showPage;
+    if(typeof originalShowPage === "function"){
+        window.showPage = function(page, addToHistory){
+            const result = originalShowPage(page, addToHistory);
+            const siteHero = document.getElementById("siteHero");
+            if(siteHero){
+                const hideHeroPages = ["dashboardPage","symptomPage","resultPage","appointmentPage","panchakarmaPage","doctorPage"].includes(page);
+                siteHero.style.display = hideHeroPages ? "none" : "block";
+            }
+            applyTranslations();
+            return result;
+        };
+    }
+
+    const originalShowLogin = window.showLogin;
+    if(typeof originalShowLogin === "function"){
+        window.showLogin = function(){
+            const result = originalShowLogin();
+            applyTranslations();
+            return result;
+        };
+    }
+
+    const originalLoadResult = window.loadResult;
+    if(typeof originalLoadResult === "function"){
+        window.loadResult = async function(){
+            const result = await originalLoadResult();
+            const doshaText = document.getElementById("doshaText");
+            const therapyText = document.getElementById("therapyText");
+            const dietText = document.getElementById("dietText");
+            const therapyDescription = document.getElementById("therapyDescription");
+            const progressText = document.getElementById("progressText");
+            if(doshaText && doshaText.textContent.trim() === "Not analyzed"){ doshaText.textContent = tr("result.not_analyzed"); }
+            if(therapyText && therapyText.textContent.trim() === "Complete the symptom analysis to see recommendations"){ therapyText.textContent = tr("result.recommendation_pending"); }
+            if(dietText && dietText.textContent.trim() === "Balanced routine and light meals"){ dietText.textContent = tr("result.default_diet"); }
+            if(therapyDescription && therapyDescription.textContent.trim() === "Your therapy recommendation will appear after the analysis step."){ therapyDescription.textContent = tr("result.default_desc"); }
+            if(progressText){ progressText.textContent = translateProgress(progressText.textContent.trim()); }
+            applyTranslations();
+            return result;
+        };
+    }
+
+    const originalUpdatePatientStatus = window.updatePatientStatus;
+    if(typeof originalUpdatePatientStatus === "function"){
+        window.updatePatientStatus = async function(){
+            const result = await originalUpdatePatientStatus();
+            const statusEl = document.getElementById("appointStatus");
+            if(statusEl){
+                const text = statusEl.textContent.trim();
+                if(text === "No appointment booked"){ statusEl.textContent = tr("appointment.none_booked"); }
+                if(text === "Please login to view appointment status"){ statusEl.textContent = tr("appointment.view_status"); }
+                if(text === "Unable to load appointment status"){ statusEl.textContent = tr("appointment.unable_status"); }
+            }
+            return result;
+        };
+    }
+
+    const originalUpdateDoctorRecommendation = window.updateDoctorRecommendation;
+    if(typeof originalUpdateDoctorRecommendation === "function"){
+        window.updateDoctorRecommendation = async function(){
+            const result = await originalUpdateDoctorRecommendation();
+            const select = document.getElementById("doctorSelect");
+            if(select){
+                Array.from(select.options).forEach((option)=>{
+                    if(option.textContent === "No doctor registered yet"){ option.textContent = tr("doctor.none_registered"); }
+                    if(option.textContent === "Select doctor manually"){ option.textContent = tr("appointment.select_manual"); }
+                });
+            }
+            const suggestedDoctorName = document.getElementById("suggestedDoctorName");
+            const suggestedDoctorReason = document.getElementById("suggestedDoctorReason");
+            const manualDoctorHint = document.getElementById("manualDoctorHint");
+            if(suggestedDoctorName && suggestedDoctorName.textContent.trim() === "No doctor suggested yet"){ suggestedDoctorName.textContent = tr("appointment.none_suggested"); }
+            if(suggestedDoctorName && suggestedDoctorName.textContent.trim() === "No doctor available"){ suggestedDoctorName.textContent = tr("appointment.none_available"); }
+            if(suggestedDoctorReason && suggestedDoctorReason.textContent.trim() === "Register doctor profiles first."){ suggestedDoctorReason.textContent = tr("appointment.register_first"); }
+            if(suggestedDoctorReason && suggestedDoctorReason.textContent.trim() === "Choose your health issue or complete analysis to get a recommendation."){ suggestedDoctorReason.textContent = tr("appointment.why_default"); }
+            if(manualDoctorHint && manualDoctorHint.textContent.trim() === "Doctor selection will appear after doctor registration."){ manualDoctorHint.textContent = tr("appointment.selection_after_register"); }
+            if(manualDoctorHint && manualDoctorHint.textContent.trim() === "System preselected the best doctor. You can still choose another doctor."){ manualDoctorHint.textContent = tr("appointment.system_preselected"); }
+            return result;
+        };
+    }
+
+    const originalLoadAppointments = window.loadAppointments;
+    if(typeof originalLoadAppointments === "function"){
+        window.loadAppointments = async function(){
+            const result = await originalLoadAppointments();
+            const docPatient = document.getElementById("docPatient");
+            const docDosha = document.getElementById("docDosha");
+            const docTherapy = document.getElementById("docTherapy");
+            const docProgress = document.getElementById("docProgress");
+            if(docPatient && docPatient.textContent.trim() === "Not available"){ docPatient.textContent = tr("appointment.not_available"); }
+            if(docDosha && docDosha.textContent.trim() === "Not analyzed"){ docDosha.textContent = tr("result.not_analyzed"); }
+            if(docTherapy && docTherapy.textContent.trim() === "Not assigned"){ docTherapy.textContent = tr("appointment.not_assigned"); }
+            if(docProgress){ docProgress.textContent = translateProgress(docProgress.textContent.trim()); }
+            const list = document.getElementById("appointmentList");
+            if(list){
+                Array.from(list.children).forEach((item)=>{
+                    if(item.textContent.trim() === "No appointments for this doctor yet."){ item.textContent = tr("appointment.no_doctor_yet"); return; }
+                    item.innerHTML = item.innerHTML
+                        .replace("Issue:", tr("appointment.issue_label"))
+                        .replace("Booked via:", tr("appointment.booked_via"))
+                        .replace("Date:", tr("appointment.date_time"))
+                        .replace("Status:", tr("appointment.status_line"))
+                        .replace("System suggestion", tr("appointment.system_suggestion"))
+                        .replace("Manual doctor choice", tr("appointment.manual_choice"))
+                        .replace("General consultation", tr("appointment.issue.general"))
+                        .replace("Pending", tr("appointment.pending"));
+                    item.innerHTML = item.innerHTML
+                        .replace("respiratory", translateIssue("respiratory"))
+                        .replace("digestive", translateIssue("digestive"))
+                        .replace("joint", translateIssue("joint"))
+                        .replace("sinus", translateIssue("sinus"))
+                        .replace("skin", translateIssue("skin"))
+                        .replace("blood", translateIssue("blood"))
+                        .replace("general", translateIssue("general"));
+                });
+            }
+            return result;
+        };
+    }
+
+    const originalDownloadPDF = window.downloadPDF;
+    if(typeof originalDownloadPDF === "function" && window.jspdf){
+        window.downloadPDF = function(){
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const patient = localStorage.getItem("patientName") || "N/A";
+            const dosha = document.getElementById("doshaText") ? document.getElementById("doshaText").textContent.trim() : "N/A";
+            const therapy = document.getElementById("therapyText") ? document.getElementById("therapyText").textContent.trim() : "N/A";
+            doc.text(tr("pdf.title"),20,20);
+            doc.text(tr("pdf.patient") + " " + patient,20,40);
+            doc.text(tr("pdf.dosha") + " " + dosha,20,50);
+            doc.text(tr("pdf.therapy") + " " + therapy,20,60);
+            doc.save("E-Panchakarma-Report.pdf");
+        };
+    }
+
+    applyTranslations();
+})();
+</script>
+</body>
+</html>
