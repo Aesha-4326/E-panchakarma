@@ -31,12 +31,64 @@ Content-Type: application/json
   "age": 26
 }
 
+### Patient Password Login
+POST {{baseUrl}}/api/auth/patient/login
+Content-Type: application/json
+
+{
+  "email": "patient1@example.com",
+  "password": "patient123"
+}
+
+### Patient Request OTP
+POST {{baseUrl}}/api/auth/patient/request-otp
+Content-Type: application/json
+
+{
+  "email": "patient1@example.com"
+}
+
+### Patient OTP Login
+POST {{baseUrl}}/api/auth/patient/login-otp
+Content-Type: application/json
+
+{
+  "email": "patient1@example.com",
+  "otp": "123456"
+}
+
 ### Google Login (Patient)
 POST {{baseUrl}}/api/auth/google
 Content-Type: application/json
 
 {
   "id_token": "REPLACE_GOOGLE_ID_TOKEN"
+}
+
+### Doctor Password Login
+POST {{baseUrl}}/api/auth/doctor/login
+Content-Type: application/json
+
+{
+  "email": "doctor1@example.com",
+  "password": "doctor123"
+}
+
+### Doctor Request OTP
+POST {{baseUrl}}/api/auth/doctor/request-otp
+Content-Type: application/json
+
+{
+  "email": "doctor1@example.com"
+}
+
+### Doctor OTP Login
+POST {{baseUrl}}/api/auth/doctor/login-otp
+Content-Type: application/json
+
+{
+  "email": "doctor1@example.com",
+  "otp": "123456"
 }
 
 ### Patient Analysis

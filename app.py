@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta
+from email.message import EmailMessage
 import json
 import os
 import secrets
+import smtplib
 from typing import Any
 
 from flask import Flask, g, jsonify, request
@@ -13,6 +15,31 @@ from google.oauth2 import id_token as google_id_token
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.security import check_password_hash, generate_password_hash
+
+
+def load_local_env_file(file_name: str = ".env.local") -> None:
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
+    if not os.path.exists(env_path):
+        return
+
+    with open(env_path, "r", encoding="utf-8") as env_file:
+        for raw_line in env_file:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+            if (
+                len(value) >= 2
+                and ((value[0] == value[-1] == '"') or (value[0] == value[-1] == "'"))
+            ):
+                value = value[1:-1]
+            # .env.local should be the source of truth for local runs, even for blank values.
+            os.environ[key] = value
+
+
+load_local_env_file()
 
 
 app = Flask(__name__)
@@ -44,6 +71,21 @@ STRICT_GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE_STRICT", "false").lower() in
     "yes",
     "on",
 )
+SMTP_HOST = (os.getenv("SMTP_HOST") or "").strip()
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USERNAME = (os.getenv("SMTP_USERNAME") or "").strip()
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() in ("1", "true", "yes", "on")
+SMTP_USE_SSL = os.getenv("SMTP_USE_SSL", "false").lower() in ("1", "true", "yes", "on")
+SMTP_FROM_EMAIL = (
+    os.getenv("SMTP_FROM_EMAIL")
+    or SMTP_USERNAME
+    or "no-reply@e-panchakarma.local"
+).strip()
+SMTP_FROM_NAME = (os.getenv("SMTP_FROM_NAME") or "E-Panchakarma").strip()
+OTP_EXPIRY_MINUTES = int(os.getenv("OTP_EXPIRY_MINUTES", "10"))
+OTP_RESEND_COOLDOWN_SECONDS = int(os.getenv("OTP_RESEND_COOLDOWN_SECONDS", "60"))
+OTP_MAX_ATTEMPTS = int(os.getenv("OTP_MAX_ATTEMPTS", "5"))
 
 SPECIALTIES = {
     "RESPIRATORY": "Respiratory & Kapha Care",
@@ -53,6 +95,17 @@ SPECIALTIES = {
     "SKIN_BLOOD": "Skin & Blood Purification",
     "GENERAL": "General Panchakarma",
 }
+
+MEDICINE_SUGGESTIONS = [
+    {"name": "Triphala Churna", "usage": "Digestive balance and gentle detox support"},
+    {"name": "Ashwagandha", "usage": "Stress support and strength building"},
+    {"name": "Brahmi", "usage": "Memory and calming support"},
+    {"name": "Sitopaladi Churna", "usage": "Respiratory comfort support"},
+    {"name": "Dashamoola Kwath", "usage": "Vata support and pain management"},
+    {"name": "Avipattikar Churna", "usage": "Acidity and Pitta support"},
+    {"name": "Neem Tablets", "usage": "Skin and blood purification support"},
+    {"name": "Anu Taila", "usage": "Nasal care and ENT support"},
+]
 
 ISSUE_MAP = {
     "respiratory": {
@@ -88,6 +141,14 @@ ISSUE_MAP = {
 
 def normalize_email(value: str) -> str:
     return (value or "").strip().lower()
+
+
+def hash_value(value: str) -> str:
+    return generate_password_hash(value)
+
+
+def check_hash(hashed_value: str, plain_value: str) -> bool:
+    return check_password_hash(hashed_value, plain_value)
 
 
 def get_server_connection():
@@ -188,11 +249,21 @@ def init_db():
                 email VARCHAR(120) NOT NULL UNIQUE,
                 hospital VARCHAR(160) NULL,
                 specialty VARCHAR(120) NOT NULL DEFAULT 'General Panchakarma',
+                experience_years INT NULL,
+                available_timings VARCHAR(255) NULL,
                 password_hash VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
+        try:
+            cursor.execute("ALTER TABLE doctors ADD COLUMN experience_years INT NULL")
+        except Error:
+            pass
+        try:
+            cursor.execute("ALTER TABLE doctors ADD COLUMN available_timings VARCHAR(255) NULL")
+        except Error:
+            pass
 
         cursor.execute(
             """
@@ -205,6 +276,24 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 INDEX idx_token (token),
                 INDEX idx_user (user_type, user_id)
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS login_otps (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_type ENUM('patient','doctor') NOT NULL,
+                user_id INT NOT NULL,
+                email VARCHAR(120) NOT NULL,
+                otp_hash VARCHAR(255) NOT NULL,
+                expires_at DATETIME NOT NULL,
+                consumed_at DATETIME NULL,
+                attempts INT NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_otp_lookup (user_type, email, created_at),
+                INDEX idx_otp_expiry (expires_at)
             )
             """
         )
@@ -252,6 +341,40 @@ def init_db():
             """
         )
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS prescriptions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                appointment_id INT NOT NULL,
+                doctor_id INT NOT NULL,
+                patient_id INT NOT NULL,
+                medicines TEXT NOT NULL,
+                notes TEXT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_prescription_appointment FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+                CONSTRAINT fk_prescription_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+                CONSTRAINT fk_prescription_patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                appointment_id INT NOT NULL,
+                doctor_id INT NOT NULL,
+                patient_id INT NOT NULL,
+                sender_type ENUM('doctor','patient') NOT NULL,
+                message_text TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_chat_appointment FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+                CONSTRAINT fk_chat_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+                CONSTRAINT fk_chat_patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+            )
+            """
+        )
+
         conn.commit()
     finally:
         cursor.close()
@@ -274,6 +397,219 @@ def create_session(user_type: str, user_id: int) -> dict[str, Any]:
         "user_type": user_type,
         "user_id": user_id,
     }
+
+
+def parse_datetime_value(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00")).replace(tzinfo=None)
+        except ValueError:
+            return None
+    return None
+
+
+def smtp_is_configured() -> bool:
+    return bool(SMTP_HOST and SMTP_FROM_EMAIL)
+
+
+def send_email(recipient_email: str, subject: str, body: str) -> None:
+    if not smtp_is_configured():
+        raise RuntimeError(
+            "Email OTP is not configured on backend. Set SMTP_HOST, SMTP_PORT, SMTP_USERNAME, "
+            "SMTP_PASSWORD and SMTP_FROM_EMAIL in your environment."
+        )
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
+    message["To"] = recipient_email
+    message.set_content(body)
+
+    if SMTP_USE_SSL:
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=20) as server:
+            if SMTP_USERNAME:
+                server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.send_message(message)
+        return
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as server:
+        server.ehlo()
+        if SMTP_USE_TLS:
+            server.starttls()
+            server.ehlo()
+        if SMTP_USERNAME:
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.send_message(message)
+
+
+def get_user_record_by_email(user_type: str, email: str) -> dict[str, Any] | None:
+    if user_type == "patient":
+        return fetch_one(
+            "SELECT id, name, email, age, password_hash FROM patients WHERE email = %s",
+            (email,),
+        )
+    return fetch_one(
+        """
+        SELECT id, name, email, hospital, specialty, experience_years, available_timings, password_hash
+        FROM doctors
+        WHERE email = %s
+        """,
+        (email,),
+    )
+
+
+def build_login_response(user_type: str, user: dict[str, Any], message: str):
+    session_data = create_session(user_type, user["id"])
+    if user_type == "patient":
+        return jsonify(
+            {
+                "message": message,
+                "patient": {
+                    "id": user["id"],
+                    "name": user["name"],
+                    "email": user["email"],
+                    "age": user["age"],
+                },
+                "session": session_data,
+            }
+        )
+    return jsonify(
+        {
+            "message": message,
+            "doctor": {
+                "id": user["id"],
+                "name": user["name"],
+                "email": user["email"],
+                "hospital": user["hospital"],
+                "specialty": user["specialty"],
+                "experience_years": user.get("experience_years"),
+                "available_timings": user.get("available_timings"),
+            },
+            "session": session_data,
+        }
+    )
+
+
+def generate_otp_code() -> str:
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def request_login_otp(user_type: str):
+    data = request.get_json(silent=True) or {}
+    email = normalize_email(data.get("email", ""))
+
+    if not email:
+        return jsonify({"error": "email is required"}), 400
+
+    user = get_user_record_by_email(user_type, email)
+    if not user:
+        return jsonify({"error": f"{user_type} account not found for this email"}), 404
+
+    latest_otp = fetch_one(
+        """
+        SELECT id, created_at
+        FROM login_otps
+        WHERE user_type = %s AND email = %s AND consumed_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (user_type, email),
+    )
+    created_at = parse_datetime_value(latest_otp["created_at"]) if latest_otp else None
+    if created_at and created_at > datetime.utcnow() - timedelta(seconds=OTP_RESEND_COOLDOWN_SECONDS):
+        return jsonify(
+            {
+                "error": f"Please wait {OTP_RESEND_COOLDOWN_SECONDS} seconds before requesting a new OTP"
+            }
+        ), 429
+
+    execute_write(
+        """
+        UPDATE login_otps
+        SET consumed_at = %s
+        WHERE user_type = %s AND email = %s AND consumed_at IS NULL
+        """,
+        (datetime.utcnow(), user_type, email),
+    )
+
+    otp_code = generate_otp_code()
+    expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    execute_write(
+        """
+        INSERT INTO login_otps (user_type, user_id, email, otp_hash, expires_at)
+        VALUES (%s, %s, %s, %s, %s)
+        """,
+        (user_type, user["id"], email, hash_value(otp_code), expires_at),
+    )
+
+    subject = f"{SMTP_FROM_NAME} login OTP"
+    body = (
+        f"Hello {user['name']},\n\n"
+        f"Your one-time password for {user_type} login is: {otp_code}\n\n"
+        f"This OTP will expire in {OTP_EXPIRY_MINUTES} minutes.\n"
+        "If you did not request this code, you can ignore this email.\n"
+    )
+    try:
+        send_email(email, subject, body)
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    return jsonify(
+        {
+            "message": f"OTP sent to {email}",
+            "expires_in_minutes": OTP_EXPIRY_MINUTES,
+        }
+    )
+
+
+def verify_login_otp(user_type: str):
+    data = request.get_json(silent=True) or {}
+    email = normalize_email(data.get("email", ""))
+    otp = (data.get("otp") or "").strip()
+
+    if not email or not otp:
+        return jsonify({"error": "email and otp are required"}), 400
+
+    user = get_user_record_by_email(user_type, email)
+    if not user:
+        return jsonify({"error": f"{user_type} account not found for this email"}), 404
+
+    otp_record = fetch_one(
+        """
+        SELECT id, otp_hash, expires_at, attempts
+        FROM login_otps
+        WHERE user_type = %s AND email = %s AND consumed_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (user_type, email),
+    )
+    if not otp_record:
+        return jsonify({"error": "No active OTP found. Request a new OTP first"}), 400
+
+    expires_at = parse_datetime_value(otp_record["expires_at"])
+    if not expires_at or expires_at < datetime.utcnow():
+        execute_write("UPDATE login_otps SET consumed_at = %s WHERE id = %s", (datetime.utcnow(), otp_record["id"]))
+        return jsonify({"error": "OTP expired. Request a new OTP"}), 400
+
+    if int(otp_record.get("attempts") or 0) >= OTP_MAX_ATTEMPTS:
+        execute_write("UPDATE login_otps SET consumed_at = %s WHERE id = %s", (datetime.utcnow(), otp_record["id"]))
+        return jsonify({"error": "OTP attempt limit reached. Request a new OTP"}), 400
+
+    if not check_hash(otp_record["otp_hash"], otp):
+        execute_write(
+            "UPDATE login_otps SET attempts = attempts + 1 WHERE id = %s",
+            (otp_record["id"],),
+        )
+        return jsonify({"error": "Invalid OTP"}), 401
+
+    execute_write(
+        "UPDATE login_otps SET consumed_at = %s WHERE id = %s",
+        (datetime.utcnow(), otp_record["id"]),
+    )
+    return build_login_response(user_type, user, f"{user_type.title()} OTP login successful")
 
 
 def verify_google_sign_in(id_token_value: str) -> dict[str, Any]:
@@ -332,8 +668,8 @@ def require_auth(user_type: str):
     if session["user_type"] != user_type:
         return None, (jsonify({"error": "Access denied for this token type"}), 403)
 
-    expires_at = session["expires_at"]
-    if isinstance(expires_at, datetime) and expires_at < datetime.utcnow():
+    expires_at = parse_datetime_value(session["expires_at"])
+    if expires_at and expires_at < datetime.utcnow():
         execute_write("DELETE FROM user_sessions WHERE id = %s", (session["id"],))
         return None, (jsonify({"error": "Token expired"}), 401)
 
@@ -368,6 +704,123 @@ def analyze_dosha(vata_count: int, pitta_count: int, kapha_count: int) -> str:
     elif pitta_count > vata_count and pitta_count > kapha_count:
         dosha = "Pitta"
     return dosha
+
+
+def parse_iso_date(value: Any) -> date | None:
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, str):
+        try:
+            return date.fromisoformat(value[:10])
+        except ValueError:
+            return None
+    return None
+
+
+def build_patient_notifications(patient_id: int) -> list[dict[str, Any]]:
+    appointments = fetch_all(
+        """
+        SELECT a.id, a.issue, a.status, a.appointment_date, a.appointment_time, a.created_at,
+               d.name AS doctor_name, d.specialty AS doctor_specialty
+        FROM appointments a
+        JOIN doctors d ON d.id = a.doctor_id
+        WHERE a.patient_id = %s
+        ORDER BY a.appointment_date ASC, a.appointment_time ASC
+        """,
+        (patient_id,),
+    )
+    today = date.today()
+    notifications: list[dict[str, Any]] = []
+
+    for appointment in appointments:
+        appointment_day = parse_iso_date(appointment.get("appointment_date"))
+        if not appointment_day:
+            continue
+        day_diff = (appointment_day - today).days
+        status = appointment.get("status") or "Pending"
+        doctor_name = appointment.get("doctor_name") or "your doctor"
+
+        if status in {"Pending", "Confirmed"} and 0 <= day_diff <= 1:
+            notifications.append(
+                {
+                    "type": "appointment_reminder",
+                    "priority": 1,
+                    "title": "Appointment reminder",
+                    "message": f"You have an appointment with Dr. {doctor_name} on {appointment['appointment_date']} at {appointment['appointment_time']}.",
+                }
+            )
+
+        if status in {"Confirmed", "Completed"} and appointment_day < today:
+            notifications.append(
+                {
+                    "type": "follow_up",
+                    "priority": 2,
+                    "title": "Follow-up alert",
+                    "message": f"Follow up with Dr. {doctor_name} for your {appointment.get('issue') or 'consultation'} visit.",
+                }
+            )
+
+    notifications.sort(key=lambda item: item["priority"])
+    return notifications[:6]
+
+
+def build_doctor_notifications(doctor_id: int) -> list[dict[str, Any]]:
+    appointments = fetch_all(
+        """
+        SELECT a.id, a.issue, a.status, a.appointment_date, a.appointment_time, a.created_at,
+               p.name AS patient_name
+        FROM appointments a
+        JOIN patients p ON p.id = a.patient_id
+        WHERE a.doctor_id = %s
+        ORDER BY a.created_at DESC, a.appointment_date ASC, a.appointment_time ASC
+        """,
+        (doctor_id,),
+    )
+    today = date.today()
+    notifications: list[dict[str, Any]] = []
+
+    for appointment in appointments:
+        appointment_day = parse_iso_date(appointment.get("appointment_date"))
+        if not appointment_day:
+            continue
+        day_diff = (appointment_day - today).days
+        status = appointment.get("status") or "Pending"
+        patient_name = appointment.get("patient_name") or "Patient"
+
+        if status == "Pending":
+            notifications.append(
+                {
+                    "type": "new_patient_request",
+                    "priority": 1,
+                    "title": "New patient request",
+                    "message": f"{patient_name} requested an appointment for {appointment.get('issue') or 'consultation'}.",
+                }
+            )
+
+        if status in {"Pending", "Confirmed"} and 0 <= day_diff <= 1:
+            notifications.append(
+                {
+                    "type": "appointment_reminder",
+                    "priority": 2,
+                    "title": "Appointment reminder",
+                    "message": f"You have an appointment with {patient_name} on {appointment['appointment_date']} at {appointment['appointment_time']}.",
+                }
+            )
+
+        if status in {"Confirmed", "Completed"} and appointment_day < today:
+            notifications.append(
+                {
+                    "type": "follow_up",
+                    "priority": 3,
+                    "title": "Follow-up alert",
+                    "message": f"Check in with {patient_name} after the {appointment.get('issue') or 'consultation'} visit.",
+                }
+            )
+
+    notifications.sort(key=lambda item: item["priority"])
+    return notifications[:8]
 
 
 def doctor_match_meta(specialty: str, issue: str, dosha: str, therapy: str) -> tuple[int, str]:
@@ -479,13 +932,10 @@ def patient_register():
     data = request.get_json(silent=True) or {}
     name = (data.get("name") or "").strip()
     email = normalize_email(data.get("email", ""))
-    password = data.get("password", "")
     age = data.get("age")
 
-    if not name or not email or not password:
-        return jsonify({"error": "name, email and password are required"}), 400
-    if len(password) < 6:
-        return jsonify({"error": "password must be at least 6 characters"}), 400
+    if not name or not email:
+        return jsonify({"error": "name and email are required"}), 400
 
     existing = fetch_one("SELECT id FROM patients WHERE email = %s", (email,))
     if existing:
@@ -496,7 +946,7 @@ def patient_register():
         INSERT INTO patients (name, email, age, password_hash)
         VALUES (%s, %s, %s, %s)
         """,
-        (name, email, age, generate_password_hash(password)),
+        (name, email, age, generate_password_hash(secrets.token_urlsafe(32))),
     )
     session_data = create_session("patient", patient_id)
     return jsonify({"message": "Patient registered", "patient_id": patient_id, "session": session_data}), 201
@@ -511,25 +961,21 @@ def patient_login():
     if not email or not password:
         return jsonify({"error": "email and password are required"}), 400
 
-    patient = fetch_one(
-        "SELECT id, name, email, age, password_hash FROM patients WHERE email = %s", (email,)
-    )
+    patient = get_user_record_by_email("patient", email)
     if not patient or not check_password_hash(patient["password_hash"], password):
         return jsonify({"error": "invalid credentials"}), 401
 
-    session_data = create_session("patient", patient["id"])
-    return jsonify(
-        {
-            "message": "Patient login successful",
-            "patient": {
-                "id": patient["id"],
-                "name": patient["name"],
-                "email": patient["email"],
-                "age": patient["age"],
-            },
-            "session": session_data,
-        }
-    )
+    return build_login_response("patient", patient, "Patient login successful")
+
+
+@app.post("/api/auth/patient/request-otp")
+def patient_request_otp():
+    return request_login_otp("patient")
+
+
+@app.post("/api/auth/patient/login-otp")
+def patient_login_otp():
+    return verify_login_otp("patient")
 
 
 @app.post("/api/auth/google")
@@ -606,25 +1052,27 @@ def doctor_google_login():
     picture = token_info.get("picture", "")
 
     doctor = fetch_one(
-        "SELECT id, name, email, hospital, specialty FROM doctors WHERE email = %s",
+        "SELECT id, name, email, hospital, specialty, experience_years, available_timings FROM doctors WHERE email = %s",
         (email,),
     )
     if not doctor:
         doctor_id = execute_write(
             """
-            INSERT INTO doctors (name, email, hospital, specialty, password_hash)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO doctors (name, email, hospital, specialty, experience_years, available_timings, password_hash)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 display_name,
                 email,
                 "",
                 SPECIALTIES["GENERAL"],
+                None,
+                "",
                 generate_password_hash(secrets.token_urlsafe(32)),
             ),
         )
         doctor = fetch_one(
-            "SELECT id, name, email, hospital, specialty FROM doctors WHERE id = %s",
+            "SELECT id, name, email, hospital, specialty, experience_years, available_timings FROM doctors WHERE id = %s",
             (doctor_id,),
         )
 
@@ -638,6 +1086,8 @@ def doctor_google_login():
                 "email": doctor["email"],
                 "hospital": doctor["hospital"],
                 "specialty": doctor["specialty"],
+                "experience_years": doctor.get("experience_years"),
+                "available_timings": doctor.get("available_timings"),
                 "picture": picture,
             },
             "session": session_data,
@@ -650,14 +1100,13 @@ def doctor_register():
     data = request.get_json(silent=True) or {}
     name = (data.get("name") or "").strip()
     email = normalize_email(data.get("email", ""))
-    password = data.get("password", "")
     hospital = (data.get("hospital") or "").strip()
     specialty = (data.get("specialty") or SPECIALTIES["GENERAL"]).strip()
+    experience_years = data.get("experience_years")
+    available_timings = (data.get("available_timings") or "").strip()
 
-    if not name or not email or not password:
-        return jsonify({"error": "name, email and password are required"}), 400
-    if len(password) < 6:
-        return jsonify({"error": "password must be at least 6 characters"}), 400
+    if not name or not email:
+        return jsonify({"error": "name and email are required"}), 400
 
     existing = fetch_one("SELECT id FROM doctors WHERE email = %s", (email,))
     if existing:
@@ -665,10 +1114,10 @@ def doctor_register():
 
     doctor_id = execute_write(
         """
-        INSERT INTO doctors (name, email, hospital, specialty, password_hash)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO doctors (name, email, hospital, specialty, experience_years, available_timings, password_hash)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
-        (name, email, hospital, specialty, generate_password_hash(password)),
+        (name, email, hospital, specialty, experience_years, available_timings, generate_password_hash(secrets.token_urlsafe(32))),
     )
     session_data = create_session("doctor", doctor_id)
     return jsonify({"message": "Doctor registered", "doctor_id": doctor_id, "session": session_data}), 201
@@ -683,31 +1132,21 @@ def doctor_login():
     if not email or not password:
         return jsonify({"error": "email and password are required"}), 400
 
-    doctor = fetch_one(
-        """
-        SELECT id, name, email, hospital, specialty, password_hash
-        FROM doctors
-        WHERE email = %s
-        """,
-        (email,),
-    )
+    doctor = get_user_record_by_email("doctor", email)
     if not doctor or not check_password_hash(doctor["password_hash"], password):
         return jsonify({"error": "invalid credentials"}), 401
 
-    session_data = create_session("doctor", doctor["id"])
-    return jsonify(
-        {
-            "message": "Doctor login successful",
-            "doctor": {
-                "id": doctor["id"],
-                "name": doctor["name"],
-                "email": doctor["email"],
-                "hospital": doctor["hospital"],
-                "specialty": doctor["specialty"],
-            },
-            "session": session_data,
-        }
-    )
+    return build_login_response("doctor", doctor, "Doctor login successful")
+
+
+@app.post("/api/auth/doctor/request-otp")
+def doctor_request_otp():
+    return request_login_otp("doctor")
+
+
+@app.post("/api/auth/doctor/login-otp")
+def doctor_login_otp():
+    return verify_login_otp("doctor")
 
 
 @app.post("/api/auth/logout")
@@ -953,6 +1392,14 @@ def my_appointments():
     return jsonify(appointments)
 
 
+@app.get("/api/patient/notifications")
+def patient_notifications():
+    user, auth_error = require_auth("patient")
+    if auth_error:
+        return auth_error
+    return jsonify(build_patient_notifications(user["id"]))
+
+
 @app.get("/api/doctor/appointments")
 def doctor_appointments():
     user, auth_error = require_auth("doctor")
@@ -972,6 +1419,60 @@ def doctor_appointments():
         (user["id"],),
     )
     return jsonify(appointments)
+
+
+@app.get("/api/doctor/notifications")
+def doctor_notifications():
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+    return jsonify(build_doctor_notifications(user["id"]))
+
+
+@app.get("/api/doctor/patients")
+def doctor_patients():
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+
+    search = (request.args.get("search") or "").strip().lower()
+    params: list[Any] = [user["id"]]
+    where_search = ""
+    if search:
+        where_search = """
+            AND (
+                LOWER(p.name) LIKE %s
+                OR LOWER(p.email) LIKE %s
+                OR LOWER(COALESCE(a.issue, '')) LIKE %s
+                OR LOWER(COALESCE(sr.final_dosha, '')) LIKE %s
+            )
+        """
+        like_value = f"%{search}%"
+        params.extend([like_value, like_value, like_value, like_value])
+
+    patients = fetch_all(
+        f"""
+        SELECT
+            p.id,
+            p.name,
+            p.email,
+            p.age,
+            MAX(a.appointment_date) AS last_appointment_date,
+            COUNT(a.id) AS total_appointments,
+            MAX(COALESCE(a.issue, '')) AS latest_issue,
+            MAX(COALESCE(sr.final_dosha, '')) AS latest_dosha,
+            MAX(COALESCE(sr.therapy, '')) AS latest_therapy
+        FROM patients p
+        JOIN appointments a ON a.patient_id = p.id
+        LEFT JOIN symptom_reports sr ON sr.patient_id = p.id
+        WHERE a.doctor_id = %s
+        {where_search}
+        GROUP BY p.id, p.name, p.email, p.age
+        ORDER BY last_appointment_date DESC, p.name ASC
+        """,
+        tuple(params),
+    )
+    return jsonify(patients)
 
 
 @app.patch("/api/doctor/appointments/<int:appointment_id>/status")
@@ -997,6 +1498,39 @@ def update_appointment_status(appointment_id: int):
     return jsonify({"message": "Appointment status updated", "appointment_id": appointment_id, "status": status})
 
 
+@app.patch("/api/doctor/appointments/<int:appointment_id>/reschedule")
+def reschedule_appointment(appointment_id: int):
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    appointment_date = data.get("appointment_date")
+    appointment_time = data.get("appointment_time")
+    if not appointment_date or not appointment_time:
+        return jsonify({"error": "appointment_date and appointment_time are required"}), 400
+
+    appointment = fetch_one(
+        "SELECT id FROM appointments WHERE id = %s AND doctor_id = %s",
+        (appointment_id, user["id"]),
+    )
+    if not appointment:
+        return jsonify({"error": "Appointment not found for this doctor"}), 404
+
+    execute_write(
+        "UPDATE appointments SET appointment_date = %s, appointment_time = %s, status = %s WHERE id = %s",
+        (appointment_date, appointment_time, "Confirmed", appointment_id),
+    )
+    return jsonify(
+        {
+            "message": "Appointment rescheduled",
+            "appointment_id": appointment_id,
+            "appointment_date": appointment_date,
+            "appointment_time": appointment_time,
+        }
+    )
+
+
 @app.get("/api/doctor/dashboard")
 def doctor_dashboard():
     user, auth_error = require_auth("doctor")
@@ -1004,7 +1538,7 @@ def doctor_dashboard():
         return auth_error
 
     doctor = fetch_one(
-        "SELECT id, name, email, hospital, specialty, created_at FROM doctors WHERE id = %s",
+        "SELECT id, name, email, hospital, specialty, experience_years, available_timings, created_at FROM doctors WHERE id = %s",
         (user["id"],),
     )
     latest_appointment = fetch_one(
@@ -1027,15 +1561,44 @@ def doctor_dashboard():
         "SELECT COUNT(*) AS pending FROM appointments WHERE doctor_id = %s AND status = 'Pending'",
         (user["id"],),
     )
+    total_patients = fetch_one(
+        """
+        SELECT COUNT(DISTINCT patient_id) AS total
+        FROM appointments
+        WHERE doctor_id = %s
+        """,
+        (user["id"],),
+    )
+    today_appointments = fetch_one(
+        """
+        SELECT COUNT(*) AS total
+        FROM appointments
+        WHERE doctor_id = %s AND appointment_date = CURDATE()
+        """,
+        (user["id"],),
+    )
+    status_breakdown = fetch_all(
+        """
+        SELECT status, COUNT(*) AS total
+        FROM appointments
+        WHERE doctor_id = %s
+        GROUP BY status
+        ORDER BY status ASC
+        """,
+        (user["id"],),
+    )
 
     return jsonify(
         {
             "doctor": doctor,
             "stats": {
+                "total_patients": total_patients["total"] if total_patients else 0,
                 "total_appointments": total_appointments["total"] if total_appointments else 0,
+                "today_appointments": today_appointments["total"] if today_appointments else 0,
                 "pending_appointments": pending_appointments["pending"] if pending_appointments else 0,
             },
             "latest_appointment": latest_appointment,
+            "status_breakdown": status_breakdown,
         }
     )
 
@@ -1060,10 +1623,236 @@ def doctor_profile():
         return auth_error
 
     doctor = fetch_one(
-        "SELECT id, name, email, hospital, specialty, created_at FROM doctors WHERE id = %s",
+        "SELECT id, name, email, hospital, specialty, experience_years, available_timings, created_at FROM doctors WHERE id = %s",
         (user["id"],),
     )
     return jsonify(doctor)
+
+
+@app.patch("/api/doctor/profile")
+def update_doctor_profile():
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    hospital = (data.get("hospital") or "").strip()
+    specialty = (data.get("specialty") or "").strip()
+    experience_years = data.get("experience_years")
+    available_timings = (data.get("available_timings") or "").strip()
+
+    if not name or not specialty:
+        return jsonify({"error": "name and specialty are required"}), 400
+
+    execute_write(
+        """
+        UPDATE doctors
+        SET name = %s, hospital = %s, specialty = %s, experience_years = %s, available_timings = %s
+        WHERE id = %s
+        """,
+        (name, hospital, specialty, experience_years, available_timings, user["id"]),
+    )
+    doctor = fetch_one(
+        "SELECT id, name, email, hospital, specialty, experience_years, available_timings, created_at FROM doctors WHERE id = %s",
+        (user["id"],),
+    )
+    return jsonify({"message": "Doctor profile updated", "doctor": doctor})
+
+
+@app.get("/api/medicines/suggest")
+def medicine_suggestions():
+    query = (request.args.get("q") or "").strip().lower()
+    if not query:
+        return jsonify(MEDICINE_SUGGESTIONS)
+    return jsonify(
+        [
+            item
+            for item in MEDICINE_SUGGESTIONS
+            if query in item["name"].lower() or query in item["usage"].lower()
+        ]
+    )
+
+
+@app.get("/api/doctor/prescriptions")
+def doctor_prescriptions():
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+
+    prescriptions = fetch_all(
+        """
+        SELECT pr.id, pr.appointment_id, pr.medicines, pr.notes, pr.created_at,
+               p.name AS patient_name
+        FROM prescriptions pr
+        JOIN patients p ON p.id = pr.patient_id
+        WHERE pr.doctor_id = %s
+        ORDER BY pr.created_at DESC
+        """,
+        (user["id"],),
+    )
+    for prescription in prescriptions:
+        prescription["medicines"] = json.loads(prescription["medicines"] or "[]")
+    return jsonify(prescriptions)
+
+
+@app.post("/api/doctor/prescriptions")
+def create_prescription():
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    appointment_id = data.get("appointment_id")
+    medicines = data.get("medicines") or []
+    notes = (data.get("notes") or "").strip()
+
+    if not appointment_id or not isinstance(medicines, list) or not medicines:
+        return jsonify({"error": "appointment_id and medicines are required"}), 400
+
+    appointment = fetch_one(
+        "SELECT id, patient_id FROM appointments WHERE id = %s AND doctor_id = %s",
+        (appointment_id, user["id"]),
+    )
+    if not appointment:
+        return jsonify({"error": "Appointment not found for this doctor"}), 404
+
+    prescription_id = execute_write(
+        """
+        INSERT INTO prescriptions (appointment_id, doctor_id, patient_id, medicines, notes)
+        VALUES (%s, %s, %s, %s, %s)
+        """,
+        (appointment_id, user["id"], appointment["patient_id"], json.dumps(medicines), notes),
+    )
+    return jsonify({"message": "Prescription created", "prescription_id": prescription_id}), 201
+
+
+@app.get("/api/patient/prescriptions")
+def patient_prescriptions():
+    user, auth_error = require_auth("patient")
+    if auth_error:
+        return auth_error
+
+    prescriptions = fetch_all(
+        """
+        SELECT pr.id, pr.appointment_id, pr.medicines, pr.notes, pr.created_at,
+               d.name AS doctor_name
+        FROM prescriptions pr
+        JOIN doctors d ON d.id = pr.doctor_id
+        WHERE pr.patient_id = %s
+        ORDER BY pr.created_at DESC
+        """,
+        (user["id"],),
+    )
+    for prescription in prescriptions:
+        prescription["medicines"] = json.loads(prescription["medicines"] or "[]")
+    return jsonify(prescriptions)
+
+
+@app.get("/api/doctor/chat/<int:appointment_id>")
+def doctor_chat_messages(appointment_id: int):
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+
+    appointment = fetch_one(
+        "SELECT id FROM appointments WHERE id = %s AND doctor_id = %s",
+        (appointment_id, user["id"]),
+    )
+    if not appointment:
+        return jsonify({"error": "Appointment not found for this doctor"}), 404
+
+    messages = fetch_all(
+        """
+        SELECT id, sender_type, message_text, created_at
+        FROM chat_messages
+        WHERE appointment_id = %s
+        ORDER BY created_at ASC
+        """,
+        (appointment_id,),
+    )
+    return jsonify(messages)
+
+
+@app.post("/api/doctor/chat/<int:appointment_id>")
+def doctor_send_chat_message(appointment_id: int):
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    message_text = (data.get("message_text") or "").strip()
+    if not message_text:
+        return jsonify({"error": "message_text is required"}), 400
+
+    appointment = fetch_one(
+        "SELECT id, patient_id FROM appointments WHERE id = %s AND doctor_id = %s",
+        (appointment_id, user["id"]),
+    )
+    if not appointment:
+        return jsonify({"error": "Appointment not found for this doctor"}), 404
+
+    message_id = execute_write(
+        """
+        INSERT INTO chat_messages (appointment_id, doctor_id, patient_id, sender_type, message_text)
+        VALUES (%s, %s, %s, 'doctor', %s)
+        """,
+        (appointment_id, user["id"], appointment["patient_id"], message_text),
+    )
+    return jsonify({"message": "Chat message sent", "message_id": message_id}), 201
+
+
+@app.get("/api/patient/chat/<int:appointment_id>")
+def patient_chat_messages(appointment_id: int):
+    user, auth_error = require_auth("patient")
+    if auth_error:
+        return auth_error
+
+    appointment = fetch_one(
+        "SELECT id FROM appointments WHERE id = %s AND patient_id = %s",
+        (appointment_id, user["id"]),
+    )
+    if not appointment:
+        return jsonify({"error": "Appointment not found for this patient"}), 404
+
+    messages = fetch_all(
+        """
+        SELECT id, sender_type, message_text, created_at
+        FROM chat_messages
+        WHERE appointment_id = %s
+        ORDER BY created_at ASC
+        """,
+        (appointment_id,),
+    )
+    return jsonify(messages)
+
+
+@app.post("/api/patient/chat/<int:appointment_id>")
+def patient_send_chat_message(appointment_id: int):
+    user, auth_error = require_auth("patient")
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    message_text = (data.get("message_text") or "").strip()
+    if not message_text:
+        return jsonify({"error": "message_text is required"}), 400
+
+    appointment = fetch_one(
+        "SELECT id, doctor_id FROM appointments WHERE id = %s AND patient_id = %s",
+        (appointment_id, user["id"]),
+    )
+    if not appointment:
+        return jsonify({"error": "Appointment not found for this patient"}), 404
+
+    message_id = execute_write(
+        """
+        INSERT INTO chat_messages (appointment_id, doctor_id, patient_id, sender_type, message_text)
+        VALUES (%s, %s, %s, 'patient', %s)
+        """,
+        (appointment_id, appointment["doctor_id"], user["id"], message_text),
+    )
+    return jsonify({"message": "Chat message sent", "message_id": message_id}), 201
 
 
 @app.errorhandler(404)
@@ -1077,4 +1866,5 @@ def internal_error(_err):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    debug_enabled = os.getenv("APP_DEBUG", "false").lower() in ("1", "true", "yes", "on")
+    app.run(host="0.0.0.0", port=5000, debug=debug_enabled, use_reloader=debug_enabled)

@@ -163,7 +163,7 @@ body::before{
     box-shadow:0 14px 30px rgba(31,74,41,0.12);
 }
 
-.patient-shell{
+.patient-layout-shell{
     display:grid;
     grid-template-columns:280px minmax(0,1fr);
     min-height:70vh;
@@ -178,7 +178,7 @@ body::before{
     display:none;
 }
 
-#patientLayout.doctor-mode .patient-shell{
+#patientLayout.doctor-mode .patient-layout-shell{
     grid-template-columns:1fr;
 }
 
@@ -321,6 +321,165 @@ body::before{
     line-height:1.6;
 }
 
+.doctor-shell{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.doctor-topline{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.doctor-identity{
+    padding:18px 20px;
+    border-radius:20px;
+    background:linear-gradient(135deg,#f6fff2,#eef8ec);
+    border:1px solid #d9ead5;
+    min-width:260px;
+}
+
+.doctor-identity p{
+    margin:8px 0 0;
+}
+
+.doctor-grid{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:18px;
+}
+
+.doctor-stack{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.doctor-panel{
+    padding:20px;
+    border-radius:22px;
+    background:linear-gradient(180deg,rgba(255,255,255,0.95),rgba(246,251,244,0.96));
+    border:1px solid #dbe8d8;
+    box-shadow:0 10px 24px rgba(33,80,41,0.08);
+}
+
+.doctor-panel h5{
+    margin-bottom:12px;
+    color:#25542d;
+}
+
+.doctor-panel-subtitle{
+    margin:-4px 0 12px;
+    color:#6b7f6d;
+    font-size:13px;
+}
+
+.doctor-dual{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+}
+
+.doctor-list{
+    max-height:320px;
+    overflow:auto;
+    border-radius:16px;
+}
+
+.doctor-panel .list-group-item{
+    border:1px solid #e4ece2;
+    border-radius:14px !important;
+    margin-bottom:10px;
+    background:#fff;
+}
+
+.doctor-panel .list-group-item.active{
+    background:linear-gradient(135deg,#3f9348,#65bb6d);
+    border-color:#3f9348;
+}
+
+.doctor-panel textarea{
+    min-height:96px;
+}
+
+.patient-dashboard-shell{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.patient-topline{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.patient-identity{
+    padding:18px 20px;
+    border-radius:20px;
+    background:linear-gradient(135deg,#f6fff2,#eef8ec);
+    border:1px solid #d9ead5;
+    min-width:260px;
+}
+
+.patient-identity p{
+    margin:8px 0 0;
+}
+
+.patient-panel-grid{
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    gap:18px;
+}
+
+.patient-stack{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.patient-panel{
+    padding:20px;
+    border-radius:22px;
+    background:linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,251,244,0.97));
+    border:1px solid #dbe8d8;
+    box-shadow:0 10px 24px rgba(33,80,41,0.07);
+}
+
+.patient-panel h5{
+    margin-bottom:12px;
+    color:#25542d;
+}
+
+.patient-panel-subtitle{
+    margin:-4px 0 12px;
+    color:#6b7f6d;
+    font-size:13px;
+}
+
+.patient-list{
+    max-height:320px;
+    overflow:auto;
+    border-radius:16px;
+}
+
+.patient-panel .list-group-item{
+    border:1px solid #e4ece2;
+    border-radius:14px !important;
+    margin-bottom:10px;
+    background:#fff;
+}
+
+.patient-panel textarea{
+    min-height:96px;
+}
+
 @media (max-width: 768px){
     :root{
         --sticky-toolbar-top:10px;
@@ -338,7 +497,7 @@ body::before{
         padding:0 12px 22px;
     }
 
-    .patient-shell{
+    .patient-layout-shell{
         grid-template-columns:1fr;
         min-height:auto;
         overflow:visible;
@@ -367,6 +526,15 @@ body::before{
     }
 
     .dashboard-highlights{
+        grid-template-columns:1fr;
+    }
+
+    .doctor-grid,
+    .doctor-dual{
+        grid-template-columns:1fr;
+    }
+
+    .patient-panel-grid{
         grid-template-columns:1fr;
     }
 
@@ -676,7 +844,7 @@ h2,h3,h4,h5{
 }
 
 .dark-mode .symptom-box{
-    background:transparent;
+    background:transparent; 
     border:0;
 }
 
@@ -839,20 +1007,9 @@ h2,h3,h4,h5{
             <div id="loginForm">
                 <input class="form-control my-2" id="loginName" placeholder="Enter Name">
                 <input class="form-control my-2" id="loginEmail" type="email" placeholder="Enter Email">
-                <input class="form-control my-2" id="loginPassword" type="password" placeholder="Enter Password">
-                <div class="form-check my-2 text-start">
-                    <input class="form-check-input" type="checkbox" id="showLoginPassword" onclick="togglePasswordVisibility('loginPassword', this.checked)">
-                    <label class="form-check-label" for="showLoginPassword">Show Password</label>
-                </div>
-                <button class="btn w-100 my-2" onclick="login()">Login</button>
-
-                <div class="auth-divider">or</div>
-                <div class="google-shell">
-                    <button type="button" class="google-btn" id="googleLoginBtn" onclick="signInWithGoogle()">
-                        <span class="google-mark">G</span>
-                        Continue with Google
-                    </button>
-                </div>
+                <button class="btn btn-outline-success w-100 my-2" id="patientOtpSendBtn" onclick="sendPatientOtp()">Send OTP</button>
+                <input class="form-control my-2" id="loginOtp" placeholder="Enter Email OTP">
+                <button class="btn btn-outline-dark w-100 my-2" id="patientOtpLoginBtn" onclick="loginWithPatientOtp()">Login</button>
 
             </div>
 
@@ -860,12 +1017,6 @@ h2,h3,h4,h5{
                 <input class="form-control my-2" id="nameInput" placeholder="Name">
                 <input class="form-control my-2" id="emailInput" type="email" placeholder="Enter Email">
                 <input class="form-control my-2" id="ageInput" placeholder="Age">
-                <input class="form-control my-2" id="passwordInput" type="password" placeholder="Create Password">
-                <div class="form-check my-2 text-start">
-                    <input class="form-check-input" type="checkbox" id="showRegisterPassword" onclick="togglePasswordVisibility('passwordInput', this.checked)">
-                    <label class="form-check-label" for="showRegisterPassword">Show Password</label>
-                </div>
-
                 <div class="form-check my-2">
                     <input class="form-check-input" type="checkbox" id="termsCheck">
                     <label class="form-check-label">
@@ -892,25 +1043,17 @@ h2,h3,h4,h5{
                     <b id="doctorEmailHint">No doctor registered yet</b>.
                 </div>
                 <input class="form-control my-2" id="doctorEmail" type="email" placeholder="Doctor Email">
-                <input class="form-control my-2" id="doctorPassword" type="password" placeholder="Doctor Password">
-                <div class="form-check my-2 text-start">
-                    <input class="form-check-input" type="checkbox" id="showDoctorLoginPassword" onclick="togglePasswordVisibility('doctorPassword', this.checked)">
-                    <label class="form-check-label" for="showDoctorLoginPassword">Show Password</label>
+                <div class="auth-note text-start mt-3 mb-2">
+                    OTP login is also available for registered doctor emails.
                 </div>
-                <button class="btn btn-dark w-100 my-2" onclick="doctorLogin()">Doctor Login</button>
-
-                <div class="auth-divider">or</div>
-                <div class="google-shell">
-                    <button type="button" class="google-btn" id="doctorGoogleLoginBtn" onclick="signInDoctorWithGoogle()">
-                        <span class="google-mark">G</span>
-                        Continue with Google
-                    </button>
-                </div>
+                <input class="form-control my-2" id="doctorOtp" placeholder="Enter Email OTP">
+                <button class="btn btn-outline-success w-100 my-2" id="doctorOtpSendBtn" onclick="sendDoctorOtp()">Send OTP</button>
+                <button class="btn btn-outline-dark w-100 my-2" id="doctorOtpLoginBtn" onclick="doctorLoginWithOtp()">Login</button>
             </div>
 
             <div id="doctorRegisterForm" style="display:none;">
                 <div class="auth-note mb-3">
-                    Register doctor profile to enable direct login with your email and password.
+                    Register doctor profile to enable OTP login with your email.
                 </div>
                 <input class="form-control my-2" id="doctorNameInput" placeholder="Doctor Name">
                 <input class="form-control my-2" id="doctorEmailInput" type="email" placeholder="Doctor Email">
@@ -924,11 +1067,6 @@ h2,h3,h4,h5{
                     <option value="Skin & Blood Purification">Skin & Blood Purification</option>
                     <option value="General Panchakarma">General Panchakarma</option>
                 </select>
-                <input class="form-control my-2" id="doctorPasswordInput" type="password" placeholder="Create Password">
-                <div class="form-check my-2 text-start">
-                    <input class="form-check-input" type="checkbox" id="showDoctorRegisterPassword" onclick="togglePasswordVisibility('doctorPasswordInput', this.checked)">
-                    <label class="form-check-label" for="showDoctorRegisterPassword">Show Password</label>
-                </div>
                 <button class="btn btn-success w-100 my-2" onclick="registerDoctor()">Register Doctor</button>
             </div>
 
@@ -936,7 +1074,7 @@ h2,h3,h4,h5{
     </div>
 
     <div id="patientLayout" style="display:none;">
-        <div class="patient-shell">
+        <div class="patient-layout-shell">
             <aside class="dashboard-sidebar">
                 <div class="dashboard-brand">
                     <span class="dashboard-kicker">Dashboard</span>
@@ -955,32 +1093,73 @@ h2,h3,h4,h5{
             <div class="patient-content">
                 <div class="page" id="dashboardPage">
                     <div class="dashboard-main">
-                        <h3>Welcome <span id="patientName"></span></h3>
-                        <p class="dashboard-subtitle">Manage your analysis journey, view care guidance, and keep your appointments organized from this patient dashboard.</p>
-                        <div class="dashboard-highlights">
-                            <div class="dashboard-tile">
-                                <strong>Health Analysis</strong>
-                                <span>Start a symptom-based assessment to review dosha imbalance and suggested care.</span>
+                        <div class="patient-dashboard-shell">
+                            <div class="patient-topline">
+                                <div>
+                                    <h3>Welcome <span id="patientName"></span></h3>
+                                    <p class="dashboard-subtitle">Manage your analysis journey, view care guidance, and keep your appointments organized from this patient dashboard.</p>
+                                </div>
+                                <div class="patient-identity">
+                                    <p><b>Patient:</b> <span id="patientDisplayName"></span></p>
+                                    <p><b>Email:</b> <span id="patientDisplayEmail"></span></p>
+                                    <p><b>Age:</b> <span id="patientDisplayAge"></span></p>
+                                </div>
                             </div>
-                            <div class="dashboard-tile">
-                                <strong>Appointments</strong>
-                                <span>Book a visit and keep track of your next consultation with ease.</span>
+
+                            <div class="patient-panel">
+                                <h5>Patient Overview</h5>
+                                <p class="patient-panel-subtitle">Keep your key care actions visible while you move between symptom analysis, booking, results, and follow-up communication.</p>
+                                <div class="dashboard-highlights mt-3">
+                                    <div class="dashboard-tile">
+                                        <strong>Health Analysis</strong>
+                                        <span>Start a symptom-based assessment to review dosha imbalance and suggested care.</span>
+                                    </div>
+                                    <div class="dashboard-tile">
+                                        <strong>Appointments</strong>
+                                        <span>Book a visit and keep track of your next consultation with ease.</span>
+                                    </div>
+                                    <div class="dashboard-tile">
+                                        <strong>Panchakarma Guide</strong>
+                                        <span>Read therapy descriptions before choosing the most suitable treatment path.</span>
+                                    </div>
+                                    <div class="dashboard-tile">
+                                        <strong>Patient Results</strong>
+                                        <span>Return to your result page anytime to review your latest health summary.</span>
+                                    </div>
+                                    <div class="dashboard-tile">
+                                        <strong>Personal Dashboard</strong>
+                                        <span>Use the left sidebar anytime to move quickly between analysis, results, and appointments.</span>
+                                    </div>
+                                    <div class="dashboard-tile">
+                                        <strong>Therapy Overview</strong>
+                                        <span>Keep important Panchakarma information visible while you navigate your account.</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="dashboard-tile">
-                                <strong>Panchakarma Guide</strong>
-                                <span>Read therapy descriptions before choosing the most suitable treatment path.</span>
-                            </div>
-                            <div class="dashboard-tile">
-                                <strong>Patient Results</strong>
-                                <span>Return to your result page anytime to review your latest health summary.</span>
-                            </div>
-                            <div class="dashboard-tile">
-                                <strong>Personal Dashboard</strong>
-                                <span>Use the left sidebar anytime to move quickly between analysis, results, and appointments.</span>
-                            </div>
-                            <div class="dashboard-tile">
-                                <strong>Therapy Overview</strong>
-                                <span>Keep important Panchakarma information visible while you navigate your account.</span>
+
+                            <div class="patient-panel-grid">
+                                <div class="patient-stack">
+                                    <div class="patient-panel">
+                                        <h5>Notifications</h5>
+                                        <p class="patient-panel-subtitle">Stay updated with appointment reminders and follow-up alerts.</p>
+                                        <ul id="patientNotificationList" class="list-group patient-list"></ul>
+                                    </div>
+                                    <div class="patient-panel">
+                                        <h5>Prescriptions</h5>
+                                        <p class="patient-panel-subtitle">View your latest digital prescriptions shared by your doctor.</p>
+                                        <ul id="patientPrescriptionList" class="list-group patient-list"></ul>
+                                    </div>
+                                </div>
+                                <div class="patient-stack">
+                                    <div class="patient-panel">
+                                        <h5>Consultation Chat</h5>
+                                        <p class="patient-panel-subtitle">Send follow-up questions to your doctor for a selected appointment.</p>
+                                        <select class="form-control my-2" id="patientChatAppointmentSelect" onchange="loadPatientChat()"></select>
+                                        <ul id="patientChatList" class="list-group patient-list mb-2"></ul>
+                                        <textarea class="form-control my-2" id="patientChatMessage" placeholder="Type your message"></textarea>
+                                        <button class="btn btn-outline-success w-100" onclick="sendPatientChatMessage()">Send Message</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1059,23 +1238,119 @@ h2,h3,h4,h5{
 
     <div class="page" id="doctorPage">
         <div class="card p-4 shadow">
-            <h4 class="text-success text-center">Doctor Admin</h4>
-            <p><b>Doctor:</b> <span id="doctorDisplayName"></span></p>
-            <p><b>Specialty:</b> <span id="doctorDisplaySpecialty"></span></p>
-            <p><b>Patient:</b> <span id="docPatient"></span></p>
-            <p><b>Dosha:</b> <span id="docDosha"></span></p>
-            <p><b>Therapy:</b> <span id="docTherapy"></span></p>
-            <p><b>Progress:</b> <span id="docProgress"></span></p>
-            <h5 class="mt-4">Appointment List</h5>
-            <ul id="appointmentList" class="list-group mt-2"></ul>
-            <button class="btn btn-danger w-100 mt-3" onclick="doctorLogout()">Doctor Logout</button>
+            <div class="doctor-shell">
+                <div class="doctor-topline">
+                    <h4 class="text-success mb-0">Doctor Admin</h4>
+                    <div class="doctor-identity">
+                        <p><b>Doctor:</b> <span id="doctorDisplayName"></span></p>
+                        <p><b>Specialty:</b> <span id="doctorDisplaySpecialty"></span></p>
+                    </div>
+                </div>
 
-            <div id="databaseInfo">
-                <h5>Database Table Structure</h5>
-<pre>PATIENT(id, name, age, email)
-SYMPTOMS(patient_id, vata, pitta, kapha)
-THERAPY(patient_id, dosha, therapy)
-PROGRESS(patient_id, status)</pre>
+                <div class="doctor-panel">
+                    <h5>Dashboard Overview</h5>
+                    <p class="doctor-panel-subtitle">Track your current workload, patient volume, and appointment status at a glance.</p>
+                    <div class="dashboard-highlights mt-3">
+                        <div class="dashboard-tile">
+                            <strong id="doctorTotalPatients">0</strong>
+                            <span>Total Patients</span>
+                        </div>
+                        <div class="dashboard-tile">
+                            <strong id="doctorTodayAppointments">0</strong>
+                            <span>Today's Appointments</span>
+                        </div>
+                        <div class="dashboard-tile">
+                            <strong id="doctorPendingAppointments">0</strong>
+                            <span>Pending Consultations</span>
+                        </div>
+                        <div class="dashboard-tile">
+                            <strong id="doctorTotalAppointments">0</strong>
+                            <span>Total Appointments</span>
+                        </div>
+                    </div>
+                    <div class="result-chart-wrap mt-3">
+                        <canvas id="doctorStatsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="doctor-grid">
+                    <div class="doctor-stack">
+                        <div class="doctor-panel">
+                            <h5>Doctor Profile</h5>
+                            <p class="doctor-panel-subtitle">Keep your specialization, experience, and available timings updated for patients.</p>
+                            <input class="form-control my-2" id="doctorProfileName" placeholder="Doctor Name">
+                            <input class="form-control my-2" id="doctorProfileHospital" placeholder="Hospital Name">
+                            <select class="form-control my-2" id="doctorProfileSpecialty">
+                                <option value="">Select Doctor Specialty</option>
+                                <option value="Respiratory & Kapha Care">Respiratory & Kapha Care</option>
+                                <option value="Digestive & Pitta Care">Digestive & Pitta Care</option>
+                                <option value="Vata & Pain Care">Vata & Pain Care</option>
+                                <option value="ENT & Head Care">ENT & Head Care</option>
+                                <option value="Skin & Blood Purification">Skin & Blood Purification</option>
+                                <option value="General Panchakarma">General Panchakarma</option>
+                            </select>
+                            <div class="doctor-dual">
+                                <input class="form-control my-2" id="doctorProfileExperience" type="number" min="0" placeholder="Experience in years">
+                                <input class="form-control my-2" id="doctorProfileTimings" placeholder="Available timings">
+                            </div>
+                            <button class="btn btn-outline-success w-100 my-2" onclick="saveDoctorProfile()">Save Doctor Profile</button>
+                        </div>
+
+                        <div class="doctor-panel">
+                            <h5>Notifications</h5>
+                            <ul id="doctorNotificationList" class="list-group doctor-list mt-2"></ul>
+                        </div>
+
+                        <div class="doctor-panel">
+                            <h5>Patient Management</h5>
+                            <p class="doctor-panel-subtitle">Search your patients by name, email, issue, or dosha pattern.</p>
+                            <input class="form-control my-2" id="doctorPatientSearch" placeholder="Search patient by name, email, issue, or dosha">
+                            <button class="btn btn-outline-success w-100 my-2" onclick="loadDoctorPatients()">Search Patients</button>
+                            <ul id="doctorPatientList" class="list-group doctor-list mt-2"></ul>
+                        </div>
+                    </div>
+
+                    <div class="doctor-stack">
+                        <div class="doctor-panel">
+                            <h5>Calendar View</h5>
+                            <ul id="doctorCalendarList" class="list-group doctor-list mt-2"></ul>
+                        </div>
+
+                        <div class="doctor-panel">
+                            <h5>Upcoming Appointments</h5>
+                            <ul id="appointmentList" class="list-group doctor-list mt-2"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doctor-grid">
+                    <div class="doctor-panel">
+                        <h5>E-Prescription</h5>
+                        <p class="doctor-panel-subtitle">Create a digital prescription, use medicine suggestions, and export it as PDF.</p>
+                        <select class="form-control my-2" id="prescriptionAppointmentSelect"></select>
+                        <input class="form-control my-2" id="medicineSearchInput" placeholder="Search medicine suggestions">
+                        <button class="btn btn-outline-success w-100 my-2" onclick="loadMedicineSuggestions()">Load Medicine Suggestions</button>
+                        <ul id="medicineSuggestionList" class="list-group doctor-list mt-2"></ul>
+                        <textarea class="form-control my-2" id="prescriptionMedicines" placeholder="Medicines, dosage, and instructions"></textarea>
+                        <textarea class="form-control my-2" id="prescriptionNotes" placeholder="Prescription notes"></textarea>
+                        <div class="doctor-dual">
+                            <button class="btn btn-success w-100 my-2" onclick="createDoctorPrescription()">Create Prescription</button>
+                            <button class="btn btn-dark w-100 my-2" onclick="downloadDoctorPrescriptionPdf()">Download Prescription PDF</button>
+                        </div>
+                        <ul id="doctorPrescriptionList" class="list-group doctor-list mt-2"></ul>
+                    </div>
+
+                    <div class="doctor-panel">
+                        <h5>Doctor ↔ Patient Chat</h5>
+                        <p class="doctor-panel-subtitle">Share consultation guidance and follow-up messages linked to each appointment.</p>
+                        <select class="form-control my-2" id="doctorChatAppointmentSelect" onchange="loadDoctorChat()"></select>
+                        <ul id="doctorChatList" class="list-group doctor-list mt-2"></ul>
+                        <textarea class="form-control my-2" id="doctorChatMessage" placeholder="Type your message"></textarea>
+                        <button class="btn btn-outline-success w-100 my-2" onclick="sendDoctorChatMessage()">Send Message</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger w-100 mt-2" onclick="doctorLogout()">Doctor Logout</button>
             </div>
         </div>
     </div>
@@ -1655,6 +1930,12 @@ function showPage(page, addToHistory=true){
 
     if(page==="dashboardPage"){
         document.getElementById("patientName").innerText = localStorage.getItem("patientName") || "Patient";
+        const patientDisplayName = document.getElementById("patientDisplayName");
+        const patientDisplayEmail = document.getElementById("patientDisplayEmail");
+        const patientDisplayAge = document.getElementById("patientDisplayAge");
+        if(patientDisplayName){ patientDisplayName.innerText = localStorage.getItem("patientName") || "Patient"; }
+        if(patientDisplayEmail){ patientDisplayEmail.innerText = localStorage.getItem("email") || "Not available"; }
+        if(patientDisplayAge){ patientDisplayAge.innerText = localStorage.getItem("age") || "Not set"; }
     }
 
     if(page==="resultPage"){
@@ -2116,6 +2397,7 @@ showPage("loginPage", false);
         return window.location.protocol + "//" + host + ":5000";
     })();
     let backendWarningShown = false;
+    let doctorStatsChart = null;
     const state = {
         patientToken: localStorage.getItem("ep_patient_token") || "",
         doctorToken: localStorage.getItem("ep_doctor_token") || "",
@@ -2132,6 +2414,19 @@ showPage("loginPage", false);
         if(state.doctor){ localStorage.setItem("ep_doctor_profile", JSON.stringify(state.doctor)); } else { localStorage.removeItem("ep_doctor_profile"); }
         if(state.analysis){ localStorage.setItem("ep_last_analysis", JSON.stringify(state.analysis)); } else { localStorage.removeItem("ep_last_analysis"); }
         localStorage.setItem("ep_progress", state.progress || "Not Started");
+    }
+
+    function syncPatientIdentityCard(){
+        const name = (state.patient && state.patient.name) || localStorage.getItem("patientName") || "Patient";
+        const email = (state.patient && state.patient.email) || localStorage.getItem("email") || "Not available";
+        const ageValue = (state.patient && state.patient.age !== undefined && state.patient.age !== null && state.patient.age !== "") ? state.patient.age : (localStorage.getItem("age") || "");
+        const age = ageValue === "" ? "Not set" : String(ageValue);
+        const nameEl = document.getElementById("patientDisplayName");
+        const emailEl = document.getElementById("patientDisplayEmail");
+        const ageEl = document.getElementById("patientDisplayAge");
+        if(nameEl){ nameEl.innerText = name; }
+        if(emailEl){ emailEl.innerText = email; }
+        if(ageEl){ ageEl.innerText = age; }
     }
 
     async function api(path, method="GET", body=null, authType=""){
@@ -2155,13 +2450,21 @@ showPage("loginPage", false);
     }
 
     async function checkBackendHealth(){
-        try{
-            const res = await fetch(API_BASE + "/health", {method:"GET"});
-            if(!res.ok){
-                throw new Error("Health check failed");
+        for(let attempt = 0; attempt < 4; attempt += 1){
+            try{
+                const res = await fetch(API_BASE + "/health", {method:"GET"});
+                if(!res.ok){
+                    throw new Error("Health check failed");
+                }
+                backendWarningShown = false;
+                updateGoogleStatus("Backend connected. Register/login is ready.");
+                return;
+            }catch(error){
+                if(attempt < 3){
+                    await new Promise((resolve)=>setTimeout(resolve, 1200));
+                    continue;
+                }
             }
-            updateGoogleStatus("Backend connected. Register/login is ready.");
-        }catch(error){
             if(!backendWarningShown){
                 backendWarningShown = true;
                 showAIPopup("Backend API not running at " + API_BASE + ". Start it with: python app.py","warning");
@@ -2196,6 +2499,8 @@ showPage("loginPage", false);
     window.showLogin = function(){
         document.getElementById("loginForm").style.display="block";
         document.getElementById("registerForm").style.display="none";
+        const otpInput = document.getElementById("loginOtp");
+        if(otpInput){ otpInput.value = ""; }
         updateGoogleStatus("Backend API mode active. Google login is enabled through backend.");
     };
 
@@ -2203,6 +2508,27 @@ showPage("loginPage", false);
         document.getElementById("loginForm").style.display="none";
         document.getElementById("registerForm").style.display="block";
     };
+
+    function storePatientLogin(data){
+        state.patientToken = data.session.token;
+        state.patient = data.patient;
+        state.analysis = null;
+        state.progress = "Not Started";
+        localStorage.setItem("patientName", data.patient.name || "");
+        localStorage.setItem("email", data.patient.email || "");
+        localStorage.setItem("age", String(data.patient.age || ""));
+        persist();
+    }
+
+    function storeDoctorLogin(data){
+        state.doctorToken = data.session.token;
+        state.doctor = data.doctor;
+        localStorage.setItem("doctorLoggedIn","true");
+        localStorage.setItem("doctorName", data.doctor.name || "");
+        localStorage.setItem("doctorEmail", data.doctor.email || "");
+        localStorage.setItem("doctorSpecialty", data.doctor.specialty || "General Panchakarma");
+        persist();
+    }
 
     async function finishGoogleBackendLogin(result, userType="patient"){
         localStorage.removeItem("ep_google_auth_role");
@@ -2312,6 +2638,8 @@ showPage("loginPage", false);
     window.resetDoctorLoginForm = async function(){
         document.getElementById("doctorLoginForm").style.display = "block";
         document.getElementById("doctorRegisterForm").style.display = "none";
+        const otpInput = document.getElementById("doctorOtp");
+        if(otpInput){ otpInput.value = ""; }
         await refreshDoctorHint();
     };
 
@@ -2320,14 +2648,12 @@ showPage("loginPage", false);
         const name=document.getElementById("nameInput").value.trim();
         const email=normalizeEmail(document.getElementById("emailInput").value);
         const age=document.getElementById("ageInput").value.trim();
-        const password=document.getElementById("passwordInput").value;
         if(!terms){ showAIPopup("Please accept Terms & Conditions","error"); return; }
-        if(name==="" || email==="" || age==="" || password===""){ showAIPopup("Please fill all fields","error"); return; }
+        if(name==="" || email==="" || age===""){ showAIPopup("Please fill all fields","error"); return; }
         if(!isValidEmail(email)){ showAIPopup("Enter a valid email address","error"); return; }
         if(isNaN(age) || Number(age) <= 0){ showAIPopup("Enter a valid age","error"); return; }
-        if(password.length < 6){ showAIPopup("Password must be at least 6 characters","error"); return; }
         try{
-            const data = await api("/api/auth/patient/register","POST",{name:name,email:email,age:Number(age),password:password});
+            const data = await api("/api/auth/patient/register","POST",{name:name,email:email,age:Number(age)});
             state.patientToken = data.session.token;
             state.patient = {id:data.session.user_id,name:name,email:email,age:Number(age)};
             state.analysis = null;
@@ -2343,25 +2669,37 @@ showPage("loginPage", false);
         }
     };
 
-    window.login = async function(){
+    window.sendPatientOtp = async function(){
+        const email = normalizeEmail(document.getElementById("loginEmail").value);
+        if(email===""){ showAIPopup("Enter your patient email first","error"); return; }
+        if(!isValidEmail(email)){ showAIPopup("Enter a valid email address","error"); return; }
+        setButtonState("patientOtpSendBtn", true, "Sending OTP...");
+        try{
+            await api("/api/auth/patient/request-otp","POST",{email:email});
+            showAIPopup("OTP sent to your email","success");
+            const otpInput = document.getElementById("loginOtp");
+            if(otpInput){ otpInput.focus(); }
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }finally{
+            setButtonState("patientOtpSendBtn", false, "Send OTP");
+        }
+    };
+
+    window.loginWithPatientOtp = async function(){
         const name = document.getElementById("loginName").value.trim();
         const email = normalizeEmail(document.getElementById("loginEmail").value);
-        const password = document.getElementById("loginPassword").value;
-        if(name==="" || email==="" || password===""){ showAIPopup("Enter name, email, and password","error"); return; }
+        const otp = document.getElementById("loginOtp").value.trim();
+        if(name==="" || email==="" || otp===""){ showAIPopup("Enter name, email, and OTP","error"); return; }
         if(!isValidEmail(email)){ showAIPopup("Enter a valid email address","error"); return; }
         try{
-            const data = await api("/api/auth/patient/login","POST",{email:email,password:password});
+            const data = await api("/api/auth/patient/login-otp","POST",{email:email,otp:otp});
             if((data.patient.name || "").trim().toLowerCase() !== name.toLowerCase()){
                 showAIPopup("Name does not match this email","error");
                 return;
             }
-            state.patientToken = data.session.token;
-            state.patient = data.patient;
-            localStorage.setItem("patientName", data.patient.name || "");
-            localStorage.setItem("email", data.patient.email || "");
-            localStorage.setItem("age", String(data.patient.age || ""));
-            persist();
-            showAIPopup("Login successful","success");
+            storePatientLogin(data);
+            showAIPopup("OTP login successful","success");
             showPage("dashboardPage");
         }catch(error){
             showAIPopup(error.message,"error");
@@ -2373,18 +2711,15 @@ showPage("loginPage", false);
         const email = normalizeEmail(document.getElementById("doctorEmailInput").value);
         const hospital = document.getElementById("doctorHospitalInput").value.trim();
         const specialty = document.getElementById("doctorSpecialtyInput").value;
-        const password = document.getElementById("doctorPasswordInput").value;
-        if(name==="" || email==="" || hospital==="" || specialty==="" || password===""){ showAIPopup("Enter doctor name, email, hospital, specialty, and password","error"); return; }
+        if(name==="" || email==="" || hospital==="" || specialty===""){ showAIPopup("Enter doctor name, email, hospital, and specialty","error"); return; }
         if(!isValidEmail(email)){ showAIPopup("Enter a valid doctor email address","error"); return; }
-        if(password.length < 6){ showAIPopup("Doctor password must be at least 6 characters","error"); return; }
         try{
-            await api("/api/auth/doctor/register","POST",{name:name,email:email,hospital:hospital,specialty:specialty,password:password});
+            await api("/api/auth/doctor/register","POST",{name:name,email:email,hospital:hospital,specialty:specialty});
             showAIPopup("Doctor registered successfully","success");
             document.getElementById("doctorNameInput").value = "";
             document.getElementById("doctorEmailInput").value = "";
             document.getElementById("doctorHospitalInput").value = "";
             document.getElementById("doctorSpecialtyInput").value = "";
-            document.getElementById("doctorPasswordInput").value = "";
             document.getElementById("doctorEmail").value = email;
             showDoctorLoginForm();
             await refreshDoctorHint();
@@ -2393,21 +2728,32 @@ showPage("loginPage", false);
         }
     };
 
-    window.doctorLogin = async function(){
+    window.sendDoctorOtp = async function(){
         const email = normalizeEmail(document.getElementById("doctorEmail").value);
-        const password = document.getElementById("doctorPassword").value;
-        if(email==="" || password===""){ showAIPopup("Enter doctor email and password","error"); return; }
+        if(email===""){ showAIPopup("Enter doctor email first","error"); return; }
+        if(!isValidEmail(email)){ showAIPopup("Enter a valid doctor email address","error"); return; }
+        setButtonState("doctorOtpSendBtn", true, "Sending OTP...");
+        try{
+            await api("/api/auth/doctor/request-otp","POST",{email:email});
+            showAIPopup("Doctor OTP sent to email","success");
+            const otpInput = document.getElementById("doctorOtp");
+            if(otpInput){ otpInput.focus(); }
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }finally{
+            setButtonState("doctorOtpSendBtn", false, "Send OTP");
+        }
+    };
+
+    window.doctorLoginWithOtp = async function(){
+        const email = normalizeEmail(document.getElementById("doctorEmail").value);
+        const otp = document.getElementById("doctorOtp").value.trim();
+        if(email==="" || otp===""){ showAIPopup("Enter doctor email and OTP","error"); return; }
         if(!isValidEmail(email)){ showAIPopup("Enter a valid doctor email address","error"); return; }
         try{
-            const data = await api("/api/auth/doctor/login","POST",{email:email,password:password});
-            state.doctorToken = data.session.token;
-            state.doctor = data.doctor;
-            localStorage.setItem("doctorLoggedIn","true");
-            localStorage.setItem("doctorName", data.doctor.name || "");
-            localStorage.setItem("doctorEmail", data.doctor.email || "");
-            localStorage.setItem("doctorSpecialty", data.doctor.specialty || "General Panchakarma");
-            persist();
-            showAIPopup("Doctor login successful","success");
+            const data = await api("/api/auth/doctor/login-otp","POST",{email:email,otp:otp});
+            storeDoctorLogin(data);
+            showAIPopup("Doctor OTP login successful","success");
             showPage("doctorPage");
         }catch(error){
             showAIPopup(error.message,"error");
@@ -2621,16 +2967,139 @@ showPage("loginPage", false);
         }
     };
 
+    window.loadPatientNotifications = async function(){
+        const listEl = document.getElementById("patientNotificationList");
+        if(!listEl){ return; }
+        listEl.innerHTML = "";
+        if(!state.patientToken){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Login to view notifications.";
+            listEl.appendChild(item);
+            return;
+        }
+        try{
+            const list = await api("/api/patient/notifications","GET",null,"patient");
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No patient notifications right now.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((notification)=>{
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerHTML = "<b>" + notification.title + "</b><br>" + notification.message;
+                listEl.appendChild(item);
+            });
+        }catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load notifications.";
+            listEl.appendChild(item);
+        }
+    };
+
+    window.loadPatientPrescriptions = async function(){
+        const listEl = document.getElementById("patientPrescriptionList");
+        if(!listEl){ return; }
+        listEl.innerHTML = "";
+        if(!state.patientToken){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Login to view prescriptions.";
+            listEl.appendChild(item);
+            return;
+        }
+        try{
+            const list = await api("/api/patient/prescriptions","GET",null,"patient");
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No prescriptions available.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((prescription)=>{
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                const meds = (prescription.medicines || []).map((m)=>m.name + " - " + m.dosage + " - " + m.instructions).join("<br>");
+                item.innerHTML = "<b>Dr. " + (prescription.doctor_name || "Doctor") + "</b><br>" + meds + "<br>" + (prescription.notes || "");
+                listEl.appendChild(item);
+            });
+        }catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load prescriptions.";
+            listEl.appendChild(item);
+        }
+    };
+
+    async function populatePatientChatAppointments(){
+        const select = document.getElementById("patientChatAppointmentSelect");
+        if(!select || !state.patientToken){ return; }
+        try{
+            const list = await api("/api/appointments/my","GET",null,"patient");
+            select.innerHTML = "";
+            list.forEach((a)=>{
+                const option=document.createElement("option");
+                option.value = a.id;
+                option.textContent = (a.appointment_date || "") + " - Dr. " + (a.doctor_name || "Doctor");
+                select.appendChild(option);
+            });
+            if(list.length){ loadPatientChat(); }
+        }catch(error){}
+    }
+
+    window.loadPatientChat = async function(){
+        const listEl = document.getElementById("patientChatList");
+        const select = document.getElementById("patientChatAppointmentSelect");
+        if(!listEl || !select || !select.value){ return; }
+        listEl.innerHTML = "";
+        try{
+            const list = await api("/api/patient/chat/" + select.value,"GET",null,"patient");
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No chat messages yet.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((msg)=>{
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerHTML = "<b>" + (msg.sender_type === "doctor" ? "Doctor" : "You") + ":</b> " + msg.message_text;
+                listEl.appendChild(item);
+            });
+        }catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load chat.";
+            listEl.appendChild(item);
+        }
+    };
+
+    window.sendPatientChatMessage = async function(){
+        const select = document.getElementById("patientChatAppointmentSelect");
+        const message = (document.getElementById("patientChatMessage").value || "").trim();
+        if(!select || !select.value || !message){ showAIPopup("Select appointment and enter message","error"); return; }
+        try{
+            await api("/api/patient/chat/" + select.value,"POST",{message_text:message},"patient");
+            document.getElementById("patientChatMessage").value = "";
+            await loadPatientChat();
+            showAIPopup("Message sent","success");
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
     window.loadAppointments = async function(){
         const listEl=document.getElementById("appointmentList");
         listEl.innerHTML="";
         try{
             const list=await api("/api/doctor/appointments","GET",null,"doctor");
-            const latest = list.length ? list[0] : null;
-            document.getElementById("docPatient").innerText = latest ? latest.patient_name : "Not available";
-            document.getElementById("docDosha").innerText = latest ? (latest.dosha || "Not analyzed") : "Not analyzed";
-            document.getElementById("docTherapy").innerText = latest ? (latest.therapy || "Not assigned") : "Not assigned";
-            document.getElementById("docProgress").innerText = latest ? (latest.progress || "Not Started") : "Not Started";
+            renderDoctorCalendar(list);
             if(!list.length){
                 const item=document.createElement("li");
                 item.className="list-group-item";
@@ -2646,7 +3115,14 @@ showPage("loginPage", false);
                 "Issue: " + (a.issue || "General consultation") + "<br>" +
                 "Booked via: " + (a.suggested_by_system ? "System suggestion" : "Manual doctor choice") + "<br>" +
                 "Date: " + a.appointment_date + " | Time: " + a.appointment_time + "<br>" +
-                "Status: <b>" + (a.status || "Pending") + "</b>";
+                "Status: <b>" + (a.status || "Pending") + "</b><br>" +
+                "<input class=\"form-control my-2\" type=\"date\" id=\"rescheduleDate_" + a.id + "\" value=\"" + a.appointment_date + "\">" +
+                "<input class=\"form-control my-2\" type=\"time\" id=\"rescheduleTime_" + a.id + "\" value=\"" + a.appointment_time + "\">" +
+                "<div class=\"mt-2\">" +
+                "<button class=\"btn btn-sm btn-outline-success me-2\" onclick=\"updateDoctorAppointmentStatus(" + a.id + ", 'Confirmed')\">Accept</button>" +
+                "<button class=\"btn btn-sm btn-outline-danger me-2\" onclick=\"updateDoctorAppointmentStatus(" + a.id + ", 'Cancelled')\">Reject</button>" +
+                "<button class=\"btn btn-sm btn-outline-primary\" onclick=\"rescheduleDoctorAppointment(" + a.id + ")\">Reschedule</button>" +
+                "</div>";
                 listEl.appendChild(item);
             });
         }
@@ -2658,11 +3134,380 @@ showPage("loginPage", false);
         }
     };
 
+    function renderDoctorCalendar(list){
+        const listEl = document.getElementById("doctorCalendarList");
+        if(!listEl){ return; }
+        listEl.innerHTML = "";
+        if(!list.length){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="No calendar events yet.";
+            listEl.appendChild(item);
+            return;
+        }
+        let currentDate = "";
+        list.forEach((a)=>{
+            if(a.appointment_date !== currentDate){
+                currentDate = a.appointment_date;
+                const header=document.createElement("li");
+                header.className="list-group-item active";
+                header.innerText=currentDate;
+                listEl.appendChild(header);
+            }
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerHTML = (a.appointment_time || "--:--") + " - " + (a.patient_name || "Patient") + " (" + (a.status || "Pending") + ")";
+            listEl.appendChild(item);
+        });
+    }
+
+    window.updateDoctorAppointmentStatus = async function(appointmentId, status){
+        try{
+            await api("/api/doctor/appointments/" + appointmentId + "/status","PATCH",{status:status},"doctor");
+            showAIPopup("Appointment " + (status === "Confirmed" ? "accepted" : "updated"),"success");
+            await loadDoctorDashboard();
+            await loadDoctorNotifications();
+            await loadAppointments();
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.rescheduleDoctorAppointment = async function(appointmentId){
+        const dateEl = document.getElementById("rescheduleDate_" + appointmentId);
+        const timeEl = document.getElementById("rescheduleTime_" + appointmentId);
+        const appointment_date = dateEl ? dateEl.value : "";
+        const appointment_time = timeEl ? timeEl.value : "";
+        if(!appointment_date || !appointment_time){
+            showAIPopup("Select new appointment date and time","error");
+            return;
+        }
+        try{
+            await api("/api/doctor/appointments/" + appointmentId + "/reschedule","PATCH",{appointment_date:appointment_date,appointment_time:appointment_time},"doctor");
+            showAIPopup("Appointment rescheduled","success");
+            await loadDoctorDashboard();
+            await loadDoctorNotifications();
+            await loadAppointments();
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    function renderDoctorStatsChart(statusBreakdown){
+        const canvas = document.getElementById("doctorStatsChart");
+        if(!canvas || !window.Chart){ return; }
+        const labels = statusBreakdown.length ? statusBreakdown.map((item)=>item.status) : ["Pending","Confirmed","Completed","Cancelled"];
+        const values = statusBreakdown.length ? statusBreakdown.map((item)=>Number(item.total || 0)) : [0,0,0,0];
+        if(doctorStatsChart){ doctorStatsChart.destroy(); }
+        doctorStatsChart = new Chart(canvas,{
+            type:"doughnut",
+            data:{
+                labels:labels,
+                datasets:[{
+                    data:values,
+                    backgroundColor:["#f4b400","#34a853","#4285f4","#ea4335"]
+                }]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                plugins:{ legend:{ position:"bottom" } }
+            }
+        });
+    }
+
+    window.loadDoctorDashboard = async function(){
+        try{
+            const data = await api("/api/doctor/dashboard","GET",null,"doctor");
+            document.getElementById("doctorDisplayName").innerText = (data.doctor && data.doctor.name) ? data.doctor.name : "Doctor";
+            document.getElementById("doctorDisplaySpecialty").innerText = (data.doctor && data.doctor.specialty) ? data.doctor.specialty : "Not assigned";
+            if(document.getElementById("doctorProfileName")){ document.getElementById("doctorProfileName").value = (data.doctor && data.doctor.name) || ""; }
+            if(document.getElementById("doctorProfileHospital")){ document.getElementById("doctorProfileHospital").value = (data.doctor && data.doctor.hospital) || ""; }
+            if(document.getElementById("doctorProfileSpecialty")){ document.getElementById("doctorProfileSpecialty").value = (data.doctor && data.doctor.specialty) || ""; }
+            if(document.getElementById("doctorProfileExperience")){ document.getElementById("doctorProfileExperience").value = (data.doctor && data.doctor.experience_years) || ""; }
+            if(document.getElementById("doctorProfileTimings")){ document.getElementById("doctorProfileTimings").value = (data.doctor && data.doctor.available_timings) || ""; }
+            document.getElementById("doctorTotalPatients").innerText = String((data.stats && data.stats.total_patients) || 0);
+            document.getElementById("doctorTodayAppointments").innerText = String((data.stats && data.stats.today_appointments) || 0);
+            document.getElementById("doctorPendingAppointments").innerText = String((data.stats && data.stats.pending_appointments) || 0);
+            document.getElementById("doctorTotalAppointments").innerText = String((data.stats && data.stats.total_appointments) || 0);
+            renderDoctorStatsChart(data.status_breakdown || []);
+        }catch(error){
+            showAIPopup("Unable to load doctor dashboard","error");
+        }
+    };
+
+    window.saveDoctorProfile = async function(){
+        const name = (document.getElementById("doctorProfileName").value || "").trim();
+        const hospital = (document.getElementById("doctorProfileHospital").value || "").trim();
+        const specialty = document.getElementById("doctorProfileSpecialty").value;
+        const experience_years = document.getElementById("doctorProfileExperience").value;
+        const available_timings = (document.getElementById("doctorProfileTimings").value || "").trim();
+        if(!name || !specialty){
+            showAIPopup("Enter doctor name and specialty","error");
+            return;
+        }
+        try{
+            const data = await api("/api/doctor/profile","PATCH",{
+                name:name,
+                hospital:hospital,
+                specialty:specialty,
+                experience_years: experience_years === "" ? null : Number(experience_years),
+                available_timings:available_timings
+            },"doctor");
+            state.doctor = data.doctor;
+            persist();
+            await loadDoctorDashboard();
+            showAIPopup("Doctor profile updated","success");
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.loadDoctorPatients = async function(){
+        const listEl = document.getElementById("doctorPatientList");
+        if(!listEl){ return; }
+        listEl.innerHTML = "";
+        try{
+            const search = (document.getElementById("doctorPatientSearch").value || "").trim();
+            const suffix = search ? ("?search=" + encodeURIComponent(search)) : "";
+            const list = await api("/api/doctor/patients" + suffix,"GET",null,"doctor");
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No matching patients found.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((patient)=>{
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerHTML =
+                    "<b>" + (patient.name || "Patient") + "</b><br>" +
+                    "Email: " + (patient.email || "N/A") + "<br>" +
+                    "Age: " + (patient.age || "N/A") + "<br>" +
+                    "Latest Issue: " + (patient.latest_issue || "Not available") + "<br>" +
+                    "Medical History: Dosha - " + (patient.latest_dosha || "Not analyzed") + "<br>" +
+                    "Previous Treatment: " + (patient.latest_therapy || "Not assigned") + "<br>" +
+                    "Appointments: " + (patient.total_appointments || 0);
+                listEl.appendChild(item);
+            });
+        }catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load patient list.";
+            listEl.appendChild(item);
+        }
+    };
+
+    async function populateDoctorAppointmentSelectors(){
+        try{
+            const list = await api("/api/doctor/appointments","GET",null,"doctor");
+            const doctorSelect = document.getElementById("prescriptionAppointmentSelect");
+            const chatSelect = document.getElementById("doctorChatAppointmentSelect");
+            [doctorSelect, chatSelect].forEach((select)=>{
+                if(!select){ return; }
+                select.innerHTML = "";
+                list.forEach((a)=>{
+                    const option=document.createElement("option");
+                    option.value = a.id;
+                    option.textContent = (a.appointment_date || "") + " - " + (a.patient_name || "Patient");
+                    select.appendChild(option);
+                });
+            });
+            if(chatSelect && list.length){ loadDoctorChat(); }
+        }catch(error){}
+    }
+
+    window.loadMedicineSuggestions = async function(){
+        const listEl = document.getElementById("medicineSuggestionList");
+        const query = (document.getElementById("medicineSearchInput").value || "").trim();
+        if(!listEl){ return; }
+        listEl.innerHTML = "";
+        try{
+            const list = await api("/api/medicines/suggest?q=" + encodeURIComponent(query));
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No medicine suggestions found.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((med)=>{
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerHTML = "<b>" + med.name + "</b><br>" + med.usage;
+                item.onclick = function(){
+                    const box = document.getElementById("prescriptionMedicines");
+                    box.value += (box.value ? "\n" : "") + med.name + " | dosage: | instructions:";
+                };
+                listEl.appendChild(item);
+            });
+        }catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load medicine suggestions.";
+            listEl.appendChild(item);
+        }
+    };
+
+    window.loadDoctorPrescriptions = async function(){
+        const listEl = document.getElementById("doctorPrescriptionList");
+        if(!listEl){ return; }
+        listEl.innerHTML = "";
+        try{
+            const list = await api("/api/doctor/prescriptions","GET",null,"doctor");
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No prescriptions created yet.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((prescription)=>{
+                const meds = (prescription.medicines || []).map((m)=>m.name + " - " + m.dosage + " - " + m.instructions).join("<br>");
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerHTML = "<b>" + (prescription.patient_name || "Patient") + "</b><br>" + meds + "<br>" + (prescription.notes || "");
+                listEl.appendChild(item);
+            });
+        }catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load prescriptions.";
+            listEl.appendChild(item);
+        }
+    };
+
+    function parsePrescriptionLines(text){
+        return text.split("\n").map((line)=>line.trim()).filter(Boolean).map((line)=>{
+            const parts = line.split("|").map((part)=>part.trim());
+            return {
+                name: parts[0] || "",
+                dosage: (parts[1] || "").replace(/^dosage:/i,"").trim(),
+                instructions: (parts[2] || "").replace(/^instructions:/i,"").trim()
+            };
+        }).filter((item)=>item.name);
+    }
+
+    window.createDoctorPrescription = async function(){
+        const appointmentId = document.getElementById("prescriptionAppointmentSelect").value;
+        const medicines = parsePrescriptionLines(document.getElementById("prescriptionMedicines").value || "");
+        const notes = (document.getElementById("prescriptionNotes").value || "").trim();
+        if(!appointmentId || !medicines.length){ showAIPopup("Select appointment and add medicines","error"); return; }
+        try{
+            await api("/api/doctor/prescriptions","POST",{appointment_id:Number(appointmentId), medicines:medicines, notes:notes},"doctor");
+            showAIPopup("Prescription created","success");
+            await loadDoctorPrescriptions();
+            await loadPatientPrescriptions();
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.downloadDoctorPrescriptionPdf = function(){
+        const appointmentId = document.getElementById("prescriptionAppointmentSelect").value || "N/A";
+        const medicines = document.getElementById("prescriptionMedicines").value || "No medicines added";
+        const notes = document.getElementById("prescriptionNotes").value || "";
+        if(!window.jspdf){ showAIPopup("PDF library unavailable","error"); return; }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("E-Panchakarma Prescription",20,20);
+        doc.text("Appointment ID: " + appointmentId,20,35);
+        doc.text("Doctor: " + ((state.doctor && state.doctor.name) || "Doctor"),20,45);
+        doc.text("Medicines:",20,60);
+        doc.text(doc.splitTextToSize(medicines,170),20,70);
+        if(notes){
+            doc.text("Notes:",20,120);
+            doc.text(doc.splitTextToSize(notes,170),20,130);
+        }
+        doc.save("doctor-prescription.pdf");
+    };
+
+    window.loadDoctorChat = async function(){
+        const listEl = document.getElementById("doctorChatList");
+        const select = document.getElementById("doctorChatAppointmentSelect");
+        if(!listEl || !select || !select.value){ return; }
+        listEl.innerHTML = "";
+        try{
+            const list = await api("/api/doctor/chat/" + select.value,"GET",null,"doctor");
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No chat messages yet.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((msg)=>{
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerHTML = "<b>" + (msg.sender_type === "doctor" ? "You" : "Patient") + ":</b> " + msg.message_text;
+                listEl.appendChild(item);
+            });
+        }catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load chat.";
+            listEl.appendChild(item);
+        }
+    };
+
+    window.sendDoctorChatMessage = async function(){
+        const select = document.getElementById("doctorChatAppointmentSelect");
+        const message = (document.getElementById("doctorChatMessage").value || "").trim();
+        if(!select || !select.value || !message){ showAIPopup("Select appointment and enter message","error"); return; }
+        try{
+            await api("/api/doctor/chat/" + select.value,"POST",{message_text:message},"doctor");
+            document.getElementById("doctorChatMessage").value = "";
+            await loadDoctorChat();
+            showAIPopup("Message sent","success");
+        }catch(error){
+            showAIPopup(error.message,"error");
+        }
+    };
+
+    window.loadDoctorNotifications = async function(){
+        const listEl=document.getElementById("doctorNotificationList");
+        if(!listEl){ return; }
+        listEl.innerHTML = "";
+        if(!state.doctorToken){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Doctor login required to view notifications.";
+            listEl.appendChild(item);
+            return;
+        }
+        try{
+            const list = await api("/api/doctor/notifications","GET",null,"doctor");
+            if(!list.length){
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerText="No doctor notifications right now.";
+                listEl.appendChild(item);
+                return;
+            }
+            list.forEach((notification)=>{
+                const item=document.createElement("li");
+                item.className="list-group-item";
+                item.innerHTML = "<b>" + notification.title + "</b><br>" + notification.message;
+                listEl.appendChild(item);
+            });
+        }catch(error){
+            const item=document.createElement("li");
+            item.className="list-group-item";
+            item.innerText="Unable to load doctor notifications.";
+            listEl.appendChild(item);
+        }
+    };
+
     const originalShowPage = window.showPage;
     window.showPage = function(page, addToHistory=true){
         originalShowPage(page, addToHistory);
         if(page==="dashboardPage"){
             document.getElementById("patientName").innerText = (state.patient && state.patient.name) ? state.patient.name : "Patient";
+            syncPatientIdentityCard();
+            loadPatientNotifications();
+            loadPatientPrescriptions();
+            populatePatientChatAppointments();
         }
         if(page==="appointmentPage"){
             updatePatientStatus();
@@ -2677,8 +3522,11 @@ showPage("loginPage", false);
                 originalShowPage("doctorLoginPage");
                 return;
             }
-            document.getElementById("doctorDisplayName").innerText = (state.doctor && state.doctor.name) ? state.doctor.name : "Doctor";
-            document.getElementById("doctorDisplaySpecialty").innerText = (state.doctor && state.doctor.specialty) ? state.doctor.specialty : "Not assigned";
+            loadDoctorDashboard();
+            loadDoctorNotifications();
+            loadDoctorPatients();
+            populateDoctorAppointmentSelectors();
+            loadDoctorPrescriptions();
             loadAppointments();
         }
     };
@@ -2706,7 +3554,7 @@ showPage("loginPage", false);
             "terms.title":"Terms & Conditions","terms.line1":"1. This system provides health suggestions based on symptoms.","terms.line2":"2. It does not replace professional medical advice.","terms.line3":"3. Patient data is stored locally for project demonstration.","terms.line4":"4. Users should consult a certified Ayurvedic doctor before therapy.","terms.line5":"5. By using this system, you agree to educational and research usage.","common.close":"Close",
             "common.or":"or","common.show_password":"Show Password","common.continue_google":"Continue with Google",
             "auth.login":"Login","auth.register":"Register","auth.doctor_login":"Doctor Login","auth.doctor_register":"Doctor Register","auth.enter_name":"Enter Name","auth.enter_email":"Enter Email","auth.enter_password":"Enter Password","auth.name":"Name","auth.age":"Age","auth.create_password":"Create Password","auth.agree_prefix":"I agree to the",
-            "doctor.admin":"Doctor Admin","doctor.none_registered":"No doctor registered yet","doctor.email":"Doctor Email","doctor.password":"Doctor Password","doctor.register_note":"Register doctor profile to enable direct login with your email and password.","doctor.name":"Doctor Name","doctor.hospital":"Hospital Name","doctor.specialty.select":"Select Doctor Specialty","doctor.specialty.respiratory":"Respiratory & Kapha Care","doctor.specialty.digestive":"Digestive & Pitta Care","doctor.specialty.vata":"Vata & Pain Care","doctor.specialty.ent":"ENT & Head Care","doctor.specialty.skin":"Skin & Blood Purification","doctor.specialty.general":"General Panchakarma","doctor.register":"Register Doctor",
+            "doctor.admin":"Doctor Admin","doctor.none_registered":"No doctor registered yet","doctor.email":"Doctor Email","doctor.password":"Doctor Password","doctor.register_note":"Register doctor profile to enable OTP login with your email.","doctor.name":"Doctor Name","doctor.hospital":"Hospital Name","doctor.specialty.select":"Select Doctor Specialty","doctor.specialty.respiratory":"Respiratory & Kapha Care","doctor.specialty.digestive":"Digestive & Pitta Care","doctor.specialty.vata":"Vata & Pain Care","doctor.specialty.ent":"ENT & Head Care","doctor.specialty.skin":"Skin & Blood Purification","doctor.specialty.general":"General Panchakarma","doctor.register":"Register Doctor",
             "dashboard.kicker":"Dashboard","dashboard.quick":"Quick Access","dashboard.sidebar_desc":"Use this side navigation to move through every patient page.","dashboard.menu.dashboard":"Dashboard","dashboard.menu.analysis":"Start Analysis","dashboard.menu.result":"View Result","dashboard.menu.appointment":"Book Appointment","dashboard.menu.panchakarma":"View Panchakarma Description","dashboard.menu.logout":"Logout","dashboard.welcome":"Welcome {name}","dashboard.subtitle":"Manage your analysis journey, view care guidance, and keep your appointments organized from this patient dashboard.","dashboard.tile.analysis":"Health Analysis","dashboard.tile.analysis_desc":"Start a symptom-based assessment to review dosha imbalance and suggested care.","dashboard.tile.appointments":"Appointments","dashboard.tile.appointments_desc":"Book a visit and keep track of your next consultation with ease.","dashboard.tile.guide":"Panchakarma Guide","dashboard.tile.guide_desc":"Read therapy descriptions before choosing the most suitable treatment path.","dashboard.tile.results":"Patient Results","dashboard.tile.results_desc":"Return to your result page anytime to review your latest health summary.","dashboard.tile.personal":"Personal Dashboard","dashboard.tile.personal_desc":"Use the left sidebar anytime to move quickly between analysis, results, and appointments.","dashboard.tile.therapy":"Therapy Overview","dashboard.tile.therapy_desc":"Keep important Panchakarma information visible while you navigate your account.",
             "symptom.title":"Health Questionnaire","symptom.subtitle":"Select all symptoms you currently feel. More accurate selection gives better dosha analysis.","symptom.vata":"Vata Symptoms","symptom.pitta":"Pitta Symptoms","symptom.kapha":"Kapha Symptoms","symptom.analyze":"Analyze",
             "result.title":"Dosha Result","result.dominant":"Dominant Dosha:","result.therapy":"Recommended Therapy","result.diet":"Diet & Lifestyle:","result.progress":"Progress:","result.complete":"Mark Complete","result.pdf":"Download PDF","result.not_analyzed":"Not analyzed","result.recommendation_pending":"Complete the symptom analysis to see recommendations","result.default_diet":"Balanced routine and light meals","result.default_desc":"Your therapy recommendation will appear after the analysis step.",
@@ -2724,7 +3572,7 @@ showPage("loginPage", false);
             "terms.title":"नियम और शर्तें","terms.line1":"1. यह सिस्टम लक्षणों के आधार पर स्वास्थ्य संबंधी सुझाव देता है।","terms.line2":"2. यह पेशेवर चिकित्सीय सलाह का विकल्प नहीं है।","terms.line3":"3. रोगी का डेटा प्रोजेक्ट डेमो के लिए लोकली संग्रहीत किया जाता है।","terms.line4":"4. उपचार से पहले प्रमाणित आयुर्वेदिक डॉक्टर से सलाह लें।","terms.line5":"5. इस सिस्टम का उपयोग करके आप शैक्षणिक और शोध उपयोग से सहमत होते हैं।","common.close":"बंद करें",
             "common.or":"या","common.show_password":"पासवर्ड दिखाएं","common.continue_google":"Google से जारी रखें",
             "auth.login":"लॉगिन","auth.register":"रजिस्टर","auth.doctor_login":"डॉक्टर लॉगिन","auth.doctor_register":"डॉक्टर रजिस्टर","auth.enter_name":"नाम दर्ज करें","auth.enter_email":"ईमेल दर्ज करें","auth.enter_password":"पासवर्ड दर्ज करें","auth.name":"नाम","auth.age":"उम्र","auth.create_password":"पासवर्ड बनाएं","auth.agree_prefix":"मैं सहमत हूं",
-            "doctor.admin":"डॉक्टर एडमिन","doctor.none_registered":"अभी तक कोई डॉक्टर रजिस्टर्ड नहीं है","doctor.email":"डॉक्टर ईमेल","doctor.password":"डॉक्टर पासवर्ड","doctor.register_note":"ईमेल और पासवर्ड से सीधे लॉगिन सक्षम करने के लिए डॉक्टर प्रोफाइल रजिस्टर करें।","doctor.name":"डॉक्टर का नाम","doctor.hospital":"अस्पताल का नाम","doctor.specialty.select":"डॉक्टर विशेषज्ञता चुनें","doctor.specialty.respiratory":"श्वसन और कफ देखभाल","doctor.specialty.digestive":"पाचन और पित्त देखभाल","doctor.specialty.vata":"वात और दर्द देखभाल","doctor.specialty.ent":"ईएनटी और सिर देखभाल","doctor.specialty.skin":"त्वचा और रक्त शुद्धि","doctor.specialty.general":"जनरल पंचकर्म","doctor.register":"डॉक्टर रजिस्टर करें",
+            "doctor.admin":"डॉक्टर एडमिन","doctor.none_registered":"अभी तक कोई डॉक्टर रजिस्टर्ड नहीं है","doctor.email":"डॉक्टर ईमेल","doctor.password":"डॉक्टर पासवर्ड","doctor.register_note":"ईमेल से OTP लॉगिन सक्षम करने के लिए डॉक्टर प्रोफाइल रजिस्टर करें।","doctor.name":"डॉक्टर का नाम","doctor.hospital":"अस्पताल का नाम","doctor.specialty.select":"डॉक्टर विशेषज्ञता चुनें","doctor.specialty.respiratory":"श्वसन और कफ देखभाल","doctor.specialty.digestive":"पाचन और पित्त देखभाल","doctor.specialty.vata":"वात और दर्द देखभाल","doctor.specialty.ent":"ईएनटी और सिर देखभाल","doctor.specialty.skin":"त्वचा और रक्त शुद्धि","doctor.specialty.general":"जनरल पंचकर्म","doctor.register":"डॉक्टर रजिस्टर करें",
             "dashboard.kicker":"डैशबोर्ड","dashboard.quick":"त्वरित पहुंच","dashboard.sidebar_desc":"इस साइड नेविगेशन से सभी रोगी पेजों पर जाएं।","dashboard.menu.dashboard":"डैशबोर्ड","dashboard.menu.analysis":"विश्लेषण शुरू करें","dashboard.menu.result":"परिणाम देखें","dashboard.menu.appointment":"अपॉइंटमेंट बुक करें","dashboard.menu.panchakarma":"पंचकर्म विवरण देखें","dashboard.menu.logout":"लॉगआउट","dashboard.welcome":"स्वागत है {name}","dashboard.subtitle":"इस रोगी डैशबोर्ड से अपना विश्लेषण, देखभाल मार्गदर्शन और अपॉइंटमेंट आसानी से प्रबंधित करें।","dashboard.tile.analysis":"स्वास्थ्य विश्लेषण","dashboard.tile.analysis_desc":"दोष असंतुलन और सुझाई गई देखभाल देखने के लिए लक्षण आधारित आकलन शुरू करें।","dashboard.tile.appointments":"अपॉइंटमेंट","dashboard.tile.appointments_desc":"अपनी अगली परामर्श यात्रा आसानी से बुक और ट्रैक करें।","dashboard.tile.guide":"पंचकर्म गाइड","dashboard.tile.guide_desc":"उपयुक्त उपचार चुनने से पहले थेरेपी विवरण पढ़ें।","dashboard.tile.results":"रोगी परिणाम","dashboard.tile.results_desc":"अपना नवीनतम स्वास्थ्य सारांश देखने के लिए परिणाम पेज पर लौटें।","dashboard.tile.personal":"व्यक्तिगत डैशबोर्ड","dashboard.tile.personal_desc":"विश्लेषण, परिणाम और अपॉइंटमेंट के बीच जल्दी जाने के लिए बाईं साइडबार का उपयोग करें।","dashboard.tile.therapy":"थेरेपी अवलोकन","dashboard.tile.therapy_desc":"खाते में नेविगेट करते समय महत्वपूर्ण पंचकर्म जानकारी दृश्य रखें।",
             "symptom.title":"स्वास्थ्य प्रश्नावली","symptom.subtitle":"जो लक्षण आप अभी महसूस कर रहे हैं, उन्हें चुनें। सही चयन से बेहतर दोष विश्लेषण मिलता है।","symptom.vata":"वात लक्षण","symptom.pitta":"पित्त लक्षण","symptom.kapha":"कफ लक्षण","symptom.analyze":"विश्लेषण करें",
             "result.title":"दोष परिणाम","result.dominant":"मुख्य दोष:","result.therapy":"सुझाई गई थेरेपी","result.diet":"आहार और जीवनशैली:","result.progress":"प्रगति:","result.complete":"पूर्ण चिन्हित करें","result.pdf":"PDF डाउनलोड करें","result.not_analyzed":"विश्लेषण नहीं हुआ","result.recommendation_pending":"सिफारिशें देखने के लिए लक्षण विश्लेषण पूरा करें","result.default_diet":"संतुलित दिनचर्या और हल्का भोजन","result.default_desc":"विश्लेषण के बाद आपकी थेरेपी सिफारिश यहां दिखाई देगी।","progress.not_started":"शुरू नहीं हुआ","progress.completed":"पूर्ण",
@@ -2739,7 +3587,7 @@ showPage("loginPage", false);
             "terms.title":"નિયમો અને શરતો","terms.line1":"1. આ સિસ્ટમ લક્ષણોના આધાર પર આરોગ્ય સૂચનો આપે છે.","terms.line2":"2. આ વ્યાવસાયિક તબીબી સલાહનું સ્થાન લેતી નથી.","terms.line3":"3. દર્દીનો ડેટા પ્રોજેક્ટ ડેમો માટે લોકલી સંગ્રહિત થાય છે.","terms.line4":"4. થેરાપી પહેલા પ્રમાણિત આયુર્વેદિક ડૉક્ટરનો સંપર્ક કરો.","terms.line5":"5. આ સિસ્ટમનો ઉપયોગ કરીને તમે શૈક્ષણિક અને સંશોધન ઉપયોગ માટે સંમત થાઓ છો.","common.close":"બંધ કરો",
             "common.or":"અથવા","common.show_password":"પાસવર્ડ બતાવો","common.continue_google":"Google સાથે આગળ વધો",
             "auth.login":"લૉગિન","auth.register":"રજીસ્ટર","auth.doctor_login":"ડૉક્ટર લૉગિન","auth.doctor_register":"ડૉક્ટર રજીસ્ટર","auth.enter_name":"નામ દાખલ કરો","auth.enter_email":"ઇમેલ દાખલ કરો","auth.enter_password":"પાસવર્ડ દાખલ કરો","auth.name":"નામ","auth.age":"ઉમર","auth.create_password":"પાસવર્ડ બનાવો","auth.agree_prefix":"હું સહમત છું",
-            "doctor.admin":"ડૉક્ટર એડમિન","doctor.none_registered":"હજુ સુધી કોઈ ડૉક્ટર રજીસ્ટર થયો નથી","doctor.email":"ડૉક્ટર ઇમેલ","doctor.password":"ડૉક્ટર પાસવર્ડ","doctor.register_note":"ઇમેલ અને પાસવર્ડ દ્વારા સીધા લૉગિન માટે ડૉક્ટર પ્રોફાઇલ રજીસ્ટર કરો.","doctor.name":"ડૉક્ટરનું નામ","doctor.hospital":"હોસ્પિટલનું નામ","doctor.specialty.select":"ડૉક્ટર વિશેષતા પસંદ કરો","doctor.specialty.respiratory":"શ્વસન અને કફ કાળજી","doctor.specialty.digestive":"પાચન અને પિત્ત કાળજી","doctor.specialty.vata":"વાત અને પીડા કાળજી","doctor.specialty.ent":"ENT અને માથાની કાળજી","doctor.specialty.skin":"ત્વચા અને રક્ત શુદ્ધિકરણ","doctor.specialty.general":"જનરલ પંચકર્મ","doctor.register":"ડૉક્ટર રજીસ્ટર કરો",
+            "doctor.admin":"ડૉક્ટર એડમિન","doctor.none_registered":"હજુ સુધી કોઈ ડૉક્ટર રજીસ્ટર થયો નથી","doctor.email":"ડૉક્ટર ઇમેલ","doctor.password":"ડૉક્ટર પાસવર્ડ","doctor.register_note":"ઇમેલથી OTP લૉગિન સક્રિય કરવા માટે ડૉક્ટર પ્રોફાઇલ રજીસ્ટર કરો.","doctor.name":"ડૉક્ટરનું નામ","doctor.hospital":"હોસ્પિટલનું નામ","doctor.specialty.select":"ડૉક્ટર વિશેષતા પસંદ કરો","doctor.specialty.respiratory":"શ્વસન અને કફ કાળજી","doctor.specialty.digestive":"પાચન અને પિત્ત કાળજી","doctor.specialty.vata":"વાત અને પીડા કાળજી","doctor.specialty.ent":"ENT અને માથાની કાળજી","doctor.specialty.skin":"ત્વચા અને રક્ત શુદ્ધિકરણ","doctor.specialty.general":"જનરલ પંચકર્મ","doctor.register":"ડૉક્ટર રજીસ્ટર કરો",
             "dashboard.kicker":"ડેશબોર્ડ","dashboard.quick":"ઝડપી ઍક્સેસ","dashboard.sidebar_desc":"આ સાઇડ નેવિગેશનથી તમામ દર્દી પેજ વચ્ચે સરળતાથી જવો.","dashboard.menu.dashboard":"ડેશબોર્ડ","dashboard.menu.analysis":"વિશ્લેષણ શરૂ કરો","dashboard.menu.result":"પરિણામ જુઓ","dashboard.menu.appointment":"અપોઇન્ટમેન્ટ બુક કરો","dashboard.menu.panchakarma":"પંચકર્મ વર્ણન જુઓ","dashboard.menu.logout":"લૉગઆઉટ","dashboard.welcome":"સ્વાગત છે {name}","dashboard.subtitle":"આ દર્દી ડેશબોર્ડથી તમારું વિશ્લેષણ, કાળજી માર્ગદર્શન અને અપોઇન્ટમેન્ટ સરળતાથી મેનેજ કરો.","dashboard.tile.analysis":"આરોગ્ય વિશ્લેષણ","dashboard.tile.analysis_desc":"દોષ અસંતુલન અને સૂચિત કાળજી જોવા માટે લક્ષણ આધારિત મૂલ્યાંકન શરૂ કરો.","dashboard.tile.appointments":"અપોઇન્ટમેન્ટ","dashboard.tile.appointments_desc":"તમારી આગામી પરામર્શ મુલાકાત સરળતાથી બુક અને ટ્રૅક કરો.","dashboard.tile.guide":"પંચકર્મ માર્ગદર્શિકા","dashboard.tile.guide_desc":"યોગ્ય સારવાર પસંદ કરતાં પહેલા થેરાપીનું વર્ણન વાંચો.","dashboard.tile.results":"દર્દી પરિણામ","dashboard.tile.results_desc":"તમારું છેલ્લું આરોગ્ય સારાંશ જોવા માટે પરિણામ પેજ પર પાછા આવો.","dashboard.tile.personal":"વ્યક્તિગત ડેશબોર્ડ","dashboard.tile.personal_desc":"વિશ્લેષણ, પરિણામ અને અપોઇન્ટમેન્ટ વચ્ચે ઝડપી જવા માટે ડાબી સાઇડબારનો ઉપયોગ કરો.","dashboard.tile.therapy":"થેરાપી અવલોકન","dashboard.tile.therapy_desc":"એકાઉન્ટમાં ફરતા સમયે મહત્વની પંચકર્મ માહિતી દેખાતી રાખો.",
             "symptom.title":"આરોગ્ય પ્રશ્નાવલી","symptom.subtitle":"હાલમાં અનુભવાતા બધા લક્ષણો પસંદ કરો. વધુ સાચી પસંદગીથી વધુ સારો દોષ વિશ્લેષણ મળે છે.","symptom.vata":"વાત લક્ષણો","symptom.pitta":"પિત્ત લક્ષણો","symptom.kapha":"કફ લક્ષણો","symptom.analyze":"વિશ્લેષણ કરો",
             "result.title":"દોષ પરિણામ","result.dominant":"મુખ્ય દોષ:","result.therapy":"ભલામણ કરાયેલ થેરાપી","result.diet":"આહાર અને જીવનશૈલી:","result.progress":"પ્રગતિ:","result.complete":"પૂર્ણ ચિહ્નિત કરો","result.pdf":"PDF ડાઉનલોડ કરો","result.not_analyzed":"વિશ્લેષણ થયું નથી","result.recommendation_pending":"ભલામણ જોવા માટે લક્ષણ વિશ્લેષણ પૂર્ણ કરો","result.default_diet":"સંતુલિત દિનચર્ય અને હળવો આહાર","result.default_desc":"વિશ્લેષણ પછી તમારી થેરાપી ભલામણ અહીં દેખાશે.","progress.not_started":"શરૂ થયું નથી","progress.completed":"પૂર્ણ",
@@ -3087,8 +3935,7 @@ showPage("loginPage", false);
         setPlaceholder("#loginEmail","auth.enter_email");
         setPlaceholder("#loginPassword","auth.enter_password");
         setText("label[for='showLoginPassword']","common.show_password");
-        setText("#loginForm .btn.w-100.my-2","auth.login");
-        setText("#loginForm .auth-divider","common.or");
+        setText("#patientOtpLoginBtn","auth.login");
         const googleLoginBtn = document.getElementById("googleLoginBtn");
         if(googleLoginBtn){ googleLoginBtn.innerHTML = '<span class="google-mark">G</span>' + tr("common.continue_google"); }
         setPlaceholder("#nameInput","auth.name");
@@ -3107,8 +3954,7 @@ showPage("loginPage", false);
         setPlaceholder("#doctorEmail","doctor.email");
         setPlaceholder("#doctorPassword","doctor.password");
         setText("label[for='showDoctorLoginPassword']","common.show_password");
-        setText("#doctorLoginForm .auth-divider","common.or");
-        setText("#doctorLoginForm .btn.btn-dark","auth.doctor_login");
+        setText("#doctorOtpLoginBtn","auth.login");
         const doctorGoogleBtn = document.getElementById("doctorGoogleLoginBtn");
         if(doctorGoogleBtn){ doctorGoogleBtn.innerHTML = '<span class="google-mark">G</span>' + tr("common.continue_google"); }
         setText("#doctorRegisterForm .auth-note","doctor.register_note");
@@ -3164,11 +4010,6 @@ showPage("loginPage", false);
         setText("#doctorPage h4","doctor.admin");
         setText("#doctorPage p:nth-of-type(1) b","doctor.label");
         setText("#doctorPage p:nth-of-type(2) b","doctor.specialty_label");
-        setText("#doctorPage p:nth-of-type(3) b","doctor.patient");
-        setText("#doctorPage p:nth-of-type(4) b","doctor.dosha");
-        setText("#doctorPage p:nth-of-type(5) b","doctor.therapy_label");
-        setText("#doctorPage p:nth-of-type(6) b","doctor.progress_label");
-        setText("#doctorPage h5.mt-4","doctor.appointment_list");
         setText("#doctorPage .btn.btn-danger","doctor.logout");
         setText("#appointmentPage h4","appointment.title");
         setSelectText("patientIssue", {"":"appointment.issue.select","respiratory":"appointment.issue.respiratory","digestive":"appointment.issue.digestive","joint":"appointment.issue.joint","sinus":"appointment.issue.sinus","skin":"appointment.issue.skin","blood":"appointment.issue.blood","general":"appointment.issue.general"});
@@ -3338,3 +4179,4 @@ showPage("loginPage", false);
 </script>
 </body>
 </html>
+  

@@ -1,0 +1,10 @@
+2026-04-06T04:38:47.783238Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2026-04-06T04:38:48.146648Z 0 [System] [MY-010116] [Server] C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqld.exe (mysqld 8.4.8) starting as process 31276
+2026-04-06T04:38:48.174016Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-04-06T04:38:48.175517Z 1 [ERROR] [MY-012271] [InnoDB] The innodb_system data file 'ibdata1' must be writable
+2026-04-06T04:38:48.176035Z 1 [ERROR] [MY-012278] [InnoDB] The innodb_system data file 'ibdata1' must be writable
+2026-04-06T04:38:48.176567Z 1 [ERROR] [MY-010334] [Server] Failed to initialize DD Storage Engine
+2026-04-06T04:38:48.178066Z 0 [ERROR] [MY-010020] [Server] Data Dictionary initialization failed.
+2026-04-06T04:38:48.178414Z 0 [ERROR] [MY-010119] [Server] Aborting
+2026-04-06T04:38:48.188562Z 0 [System] [MY-010910] [Server] C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqld.exe: Shutdown complete (mysqld 8.4.8)  MySQL Community Server - GPL.
+2026-04-06T04:38:48.188874Z 0 [System] [MY-015016] [Server] MySQL Server - end.
