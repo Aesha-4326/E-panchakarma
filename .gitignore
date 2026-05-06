@@ -1,0 +1,9 @@
+.env
+.env.local
+.run/
+__pycache__/
+*.pyc
+*.log
+mysql-data/
+backend.err.log
+backend.out.log
