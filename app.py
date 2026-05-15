@@ -7,6 +7,7 @@ import os
 import secrets
 import smtplib
 from typing import Any
+from urllib.parse import urlparse
 
 from flask import Flask, g, jsonify, request
 from flask_cors import CORS
@@ -331,6 +332,8 @@ def init_db():
                 progress VARCHAR(60) DEFAULT 'Not Started',
                 appointment_date DATE NOT NULL,
                 appointment_time TIME NOT NULL,
+                appointment_mode VARCHAR(20) DEFAULT 'Clinic',
+                meeting_link VARCHAR(500) NULL,
                 status VARCHAR(40) DEFAULT 'Pending',
                 suggested_by_system TINYINT(1) DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -340,6 +343,14 @@ def init_db():
             )
             """
         )
+        try:
+            cursor.execute("ALTER TABLE appointments ADD COLUMN appointment_mode VARCHAR(20) DEFAULT 'Clinic'")
+        except Error:
+            pass
+        try:
+            cursor.execute("ALTER TABLE appointments ADD COLUMN meeting_link VARCHAR(500) NULL")
+        except Error:
+            pass
 
         cursor.execute(
             """
@@ -442,6 +453,14 @@ def send_email(recipient_email: str, subject: str, body: str) -> None:
         if SMTP_USERNAME:
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
         server.send_message(message)
+
+
+def is_valid_meeting_link(value: str) -> bool:
+    parsed = urlparse((value or "").strip())
+    hostname = (parsed.hostname or "").lower()
+    if parsed.scheme != "https":
+        return False
+    return hostname == "meet.google.com" or hostname == "zoom.us" or hostname.endswith(".zoom.us")
 
 
 def get_user_record_by_email(user_type: str, email: str) -> dict[str, Any] | None:
@@ -1322,10 +1341,13 @@ def create_appointment():
     doctor_id = data.get("doctor_id")
     appointment_date = data.get("appointment_date")
     appointment_time = data.get("appointment_time")
+    appointment_mode = (data.get("appointment_mode") or "Clinic").strip().title()
     use_system_suggestion = bool(data.get("use_system_suggestion", False))
 
     if not issue or not appointment_date or not appointment_time:
         return jsonify({"error": "issue, appointment_date and appointment_time are required"}), 400
+    if appointment_mode not in {"Clinic", "Online"}:
+        return jsonify({"error": "appointment_mode must be Clinic or Online"}), 400
 
     latest_report = fetch_one(
         """
@@ -1355,10 +1377,21 @@ def create_appointment():
     appointment_id = execute_write(
         """
         INSERT INTO appointments (
-            patient_id, doctor_id, issue, dosha, therapy, appointment_date, appointment_time, suggested_by_system
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            patient_id, doctor_id, issue, dosha, therapy, appointment_date, appointment_time,
+            appointment_mode, suggested_by_system
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
-        (user["id"], doctor_id, issue, dosha, therapy, appointment_date, appointment_time, suggested_by_system),
+        (
+            user["id"],
+            doctor_id,
+            issue,
+            dosha,
+            therapy,
+            appointment_date,
+            appointment_time,
+            appointment_mode,
+            suggested_by_system,
+        ),
     )
 
     return jsonify(
@@ -1380,7 +1413,7 @@ def my_appointments():
     appointments = fetch_all(
         """
         SELECT a.id, a.issue, a.dosha, a.therapy, a.progress, a.appointment_date, a.appointment_time,
-               a.status, a.suggested_by_system, a.created_at,
+               a.appointment_mode, a.meeting_link, a.status, a.suggested_by_system, a.created_at,
                d.id AS doctor_id, d.name AS doctor_name, d.email AS doctor_email, d.specialty AS doctor_specialty
         FROM appointments a
         JOIN doctors d ON d.id = a.doctor_id
@@ -1409,7 +1442,7 @@ def doctor_appointments():
     appointments = fetch_all(
         """
         SELECT a.id, a.issue, a.dosha, a.therapy, a.progress, a.appointment_date, a.appointment_time,
-               a.status, a.suggested_by_system, a.created_at,
+               a.appointment_mode, a.meeting_link, a.status, a.suggested_by_system, a.created_at,
                p.id AS patient_id, p.name AS patient_name, p.email AS patient_email, p.age AS patient_age
         FROM appointments a
         JOIN patients p ON p.id = a.patient_id
@@ -1527,6 +1560,47 @@ def reschedule_appointment(appointment_id: int):
             "appointment_id": appointment_id,
             "appointment_date": appointment_date,
             "appointment_time": appointment_time,
+        }
+    )
+
+
+@app.patch("/api/doctor/appointments/<int:appointment_id>/meeting")
+def update_appointment_meeting(appointment_id: int):
+    user, auth_error = require_auth("doctor")
+    if auth_error:
+        return auth_error
+
+    data = request.get_json(silent=True) or {}
+    appointment_mode = (data.get("appointment_mode") or "Clinic").strip().title()
+    meeting_link = (data.get("meeting_link") or "").strip()
+    if appointment_mode not in {"Clinic", "Online"}:
+        return jsonify({"error": "appointment_mode must be Clinic or Online"}), 400
+    if appointment_mode == "Online" and not meeting_link:
+        return jsonify({"error": "Meeting link is required for online appointments"}), 400
+    if meeting_link and not is_valid_meeting_link(meeting_link):
+        return jsonify({"error": "Use a valid Zoom or Google Meet link"}), 400
+
+    appointment = fetch_one(
+        "SELECT id FROM appointments WHERE id = %s AND doctor_id = %s",
+        (appointment_id, user["id"]),
+    )
+    if not appointment:
+        return jsonify({"error": "Appointment not found for this doctor"}), 404
+
+    execute_write(
+        """
+        UPDATE appointments
+        SET appointment_mode = %s, meeting_link = %s, status = %s
+        WHERE id = %s
+        """,
+        (appointment_mode, meeting_link or None, "Confirmed", appointment_id),
+    )
+    return jsonify(
+        {
+            "message": "Meeting details updated",
+            "appointment_id": appointment_id,
+            "appointment_mode": appointment_mode,
+            "meeting_link": meeting_link,
         }
     )
 

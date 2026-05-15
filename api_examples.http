@@ -114,9 +114,20 @@ Content-Type: application/json
   "issue": "digestive",
   "use_system_suggestion": true,
   "appointment_date": "2026-03-30",
-  "appointment_time": "11:30:00"
+  "appointment_time": "11:30:00",
+  "appointment_mode": "Online"
 }
 
 ### Doctor Appointments
 GET {{baseUrl}}/api/doctor/appointments
 Authorization: Bearer {{doctorToken}}
+
+### Add Zoom or Google Meet Link
+PATCH {{baseUrl}}/api/doctor/appointments/1/meeting
+Authorization: Bearer {{doctorToken}}
+Content-Type: application/json
+
+{
+  "appointment_mode": "Online",
+  "meeting_link": "https://meet.google.com/abc-defg-hij"
+}
