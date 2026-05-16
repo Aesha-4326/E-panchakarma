@@ -102,7 +102,6 @@ Notes for email OTP auth:
 - `GET /api/doctor/appointments` (doctor auth required)
 - `PATCH /api/doctor/appointments/<id>/status` (doctor auth required)
 - `PATCH /api/doctor/appointments/<id>/reschedule` (doctor auth required)
-- `PATCH /api/doctor/appointments/<id>/meeting` (doctor auth required, saves Zoom/Meet link for online appointments)
 - `GET /api/doctor/dashboard` (doctor auth required)
 
 ### Profiles

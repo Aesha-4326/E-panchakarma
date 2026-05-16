@@ -1380,10 +1380,6 @@ h2,h3,h4,h5{
             </div>
             <input type="date" class="form-control my-2" id="appointDate">
             <input type="time" class="form-control my-2" id="appointTime">
-            <select class="form-control my-2" id="appointmentMode">
-                <option value="Clinic">Clinic visit</option>
-                <option value="Online">Online event / consultation</option>
-            </select>
             <button class="btn btn-success w-100" onclick="bookAppointment()">Confirm Appointment</button>
             <p class="mt-3"><b>Status:</b> <span id="appointStatus">No appointment booked</span></p>
         </div>
@@ -2453,27 +2449,6 @@ showPage("loginPage", false);
         return data;
     }
 
-    function escapeHtml(value){
-        return String(value || "").replace(/[&<>"']/g, function(char){
-            return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char];
-        });
-    }
-
-    function appointmentModeLabel(appointment){
-        return (appointment && appointment.appointment_mode === "Online") ? "Online event" : "Clinic visit";
-    }
-
-    function appointmentMeetingHtml(appointment){
-        if(!appointment || appointment.appointment_mode !== "Online"){
-            return "Mode: Clinic visit";
-        }
-        if(!appointment.meeting_link){
-            return "Mode: Online event<br>Meeting link: Waiting for organizer";
-        }
-        const link = escapeHtml(appointment.meeting_link);
-        return "Mode: Online event<br>Meeting link: <a href=\"" + link + "\" target=\"_blank\" rel=\"noopener\">Join Zoom/Meet</a>";
-    }
-
     async function checkBackendHealth(){
         for(let attempt = 0; attempt < 4; attempt += 1){
             try{
@@ -2964,11 +2939,9 @@ showPage("loginPage", false);
         const time=document.getElementById("appointTime").value;
         const issue=document.getElementById("patientIssue").value;
         const doctorIdValue=document.getElementById("doctorSelect").value;
-        const appointmentModeEl=document.getElementById("appointmentMode");
-        const appointmentMode=appointmentModeEl ? appointmentModeEl.value : "Clinic";
         if(issue==="" ){ showAIPopup("Please choose health issue","error"); return; }
         if(date==="" || time===""){ showAIPopup("Please select date and time","error"); return; }
-        const payload = {issue:issue, appointment_date:date, appointment_time:time, appointment_mode:appointmentMode};
+        const payload = {issue:issue, appointment_date:date, appointment_time:time};
         if(doctorIdValue){ payload.doctor_id = Number(doctorIdValue); } else { payload.use_system_suggestion = true; }
         try{
             await api("/api/appointments","POST",payload,"patient");
@@ -2988,11 +2961,7 @@ showPage("loginPage", false);
         try{
             const list = await api("/api/appointments/my","GET",null,"patient");
             const latest = list.length ? list[0] : null;
-            if(latest){
-                statusEl.innerHTML = latest.status + " with Dr. " + escapeHtml(latest.doctor_name || "Assigned Doctor") + "<br>" + appointmentMeetingHtml(latest);
-            }else{
-                statusEl.innerText = "No appointment booked";
-            }
+            statusEl.innerText = latest ? (latest.status + " with Dr. " + (latest.doctor_name || "Assigned Doctor")) : "No appointment booked";
         }catch(error){
             statusEl.innerText = "Unable to load appointment status";
         }
@@ -3146,20 +3115,13 @@ showPage("loginPage", false);
                 "Issue: " + (a.issue || "General consultation") + "<br>" +
                 "Booked via: " + (a.suggested_by_system ? "System suggestion" : "Manual doctor choice") + "<br>" +
                 "Date: " + a.appointment_date + " | Time: " + a.appointment_time + "<br>" +
-                appointmentMeetingHtml(a) + "<br>" +
                 "Status: <b>" + (a.status || "Pending") + "</b><br>" +
                 "<input class=\"form-control my-2\" type=\"date\" id=\"rescheduleDate_" + a.id + "\" value=\"" + a.appointment_date + "\">" +
                 "<input class=\"form-control my-2\" type=\"time\" id=\"rescheduleTime_" + a.id + "\" value=\"" + a.appointment_time + "\">" +
-                "<select class=\"form-control my-2\" id=\"meetingMode_" + a.id + "\">" +
-                "<option value=\"Clinic\"" + (a.appointment_mode !== "Online" ? " selected" : "") + ">Clinic visit</option>" +
-                "<option value=\"Online\"" + (a.appointment_mode === "Online" ? " selected" : "") + ">Online event</option>" +
-                "</select>" +
-                "<input class=\"form-control my-2\" type=\"url\" id=\"meetingLink_" + a.id + "\" value=\"" + escapeHtml(a.meeting_link || "") + "\" placeholder=\"Paste Zoom or Google Meet link\">" +
                 "<div class=\"mt-2\">" +
                 "<button class=\"btn btn-sm btn-outline-success me-2\" onclick=\"updateDoctorAppointmentStatus(" + a.id + ", 'Confirmed')\">Accept</button>" +
                 "<button class=\"btn btn-sm btn-outline-danger me-2\" onclick=\"updateDoctorAppointmentStatus(" + a.id + ", 'Cancelled')\">Reject</button>" +
-                "<button class=\"btn btn-sm btn-outline-primary me-2\" onclick=\"rescheduleDoctorAppointment(" + a.id + ")\">Reschedule</button>" +
-                "<button class=\"btn btn-sm btn-outline-info\" onclick=\"saveDoctorMeeting(" + a.id + ")\">Save Online Link</button>" +
+                "<button class=\"btn btn-sm btn-outline-primary\" onclick=\"rescheduleDoctorAppointment(" + a.id + ")\">Reschedule</button>" +
                 "</div>";
                 listEl.appendChild(item);
             });
@@ -3194,7 +3156,7 @@ showPage("loginPage", false);
             }
             const item=document.createElement("li");
             item.className="list-group-item";
-            item.innerHTML = (a.appointment_time || "--:--") + " - " + (a.patient_name || "Patient") + " (" + (a.status || "Pending") + ", " + appointmentModeLabel(a) + ")";
+            item.innerHTML = (a.appointment_time || "--:--") + " - " + (a.patient_name || "Patient") + " (" + (a.status || "Pending") + ")";
             listEl.appendChild(item);
         });
     }
@@ -3223,31 +3185,6 @@ showPage("loginPage", false);
         try{
             await api("/api/doctor/appointments/" + appointmentId + "/reschedule","PATCH",{appointment_date:appointment_date,appointment_time:appointment_time},"doctor");
             showAIPopup("Appointment rescheduled","success");
-            await loadDoctorDashboard();
-            await loadDoctorNotifications();
-            await loadAppointments();
-        }catch(error){
-            showAIPopup(error.message,"error");
-        }
-    };
-
-    window.saveDoctorMeeting = async function(appointmentId){
-        const modeEl = document.getElementById("meetingMode_" + appointmentId);
-        const linkEl = document.getElementById("meetingLink_" + appointmentId);
-        const appointment_mode = modeEl ? modeEl.value : "Clinic";
-        const meeting_link = linkEl ? (linkEl.value || "").trim() : "";
-        if(appointment_mode === "Online" && !meeting_link){
-            showAIPopup("Paste Zoom or Google Meet link","error");
-            return;
-        }
-        try{
-            await api(
-                "/api/doctor/appointments/" + appointmentId + "/meeting",
-                "PATCH",
-                {appointment_mode:appointment_mode, meeting_link:meeting_link},
-                "doctor"
-            );
-            showAIPopup("Online event details saved","success");
             await loadDoctorDashboard();
             await loadDoctorNotifications();
             await loadAppointments();

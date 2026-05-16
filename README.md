@@ -41,7 +41,6 @@ Doctors can:
 - OTP email login support
 - Google Sign-In support
 - Appointment booking and management
-- Online appointment mode with organizer-added Zoom or Google Meet links
 - Prescription creation and patient access
 - Doctor-patient chat per appointment
 - Multilingual frontend content
@@ -238,7 +237,6 @@ http://127.0.0.1:5000
 - `GET /api/doctor/appointments`
 - `PATCH /api/doctor/appointments/<id>/status`
 - `PATCH /api/doctor/appointments/<id>/reschedule`
-- `PATCH /api/doctor/appointments/<id>/meeting`
 
 ### Prescriptions
 
