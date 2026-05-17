@@ -165,7 +165,7 @@ python app.py
 Or use the helper script:
 
 ```powershell
-.\start-backend.ps1
+.\start-backend.cmd
 ```
 
 ### 5. Initialize the database
