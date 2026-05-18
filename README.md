@@ -178,7 +178,19 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:5000/init-db"
 
 ### 6. Open the frontend
 
-Open `e-panchakarma.html` in your browser.
+Open the Flask app URL in your browser:
+
+```text
+http://127.0.0.1:5000
+```
+
+This serves `e-panchakarma.html` and the `images/` folder together, so therapy images also load when the app is opened from another device.
+
+To open the app from another phone or laptop on the same Wi-Fi, use this computer's local network IP address:
+
+```text
+http://YOUR_COMPUTER_IP:5000
+```
 
 For the best experience during development, run the backend locally and keep the frontend and API base URLs aligned if you customize them.
 
@@ -304,7 +316,3 @@ For a stronger GitHub presentation, add:
 - A repository description
 - Topics such as `ayurveda`, `panchakarma`, `flask`, `mysql`, `healthcare`, `webapp`
 - Screenshots of the patient dashboard and doctor dashboard
-
-## License
-
-Add your preferred license here, for example MIT, if you want others to reuse the code.

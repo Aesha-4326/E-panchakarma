@@ -214,8 +214,10 @@ if (-not $apiReady) {
 
 Write-Host ""
 Write-Host "Backend started successfully." -ForegroundColor Green
-Write-Host "API URL: http://127.0.0.1:5000"
+Write-Host "App URL: http://127.0.0.1:5000"
+Write-Host "API URL: http://127.0.0.1:5000/api"
 Write-Host "Health:  http://127.0.0.1:5000/health"
+Write-Host "Other devices on the same Wi-Fi can open: http://YOUR_COMPUTER_IP:5000"
 Write-Host ""
 Write-Host "Log files:"
 Write-Host " - $flaskErr"

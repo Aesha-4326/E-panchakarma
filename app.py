@@ -8,7 +8,7 @@ import secrets
 import smtplib
 from typing import Any
 
-from flask import Flask, g, jsonify, request
+from flask import Flask, g, jsonify, request, send_from_directory
 from flask_cors import CORS
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
@@ -41,6 +41,8 @@ def load_local_env_file(file_name: str = ".env.local") -> None:
 
 load_local_env_file()
 
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 CORS(app)
@@ -885,13 +887,12 @@ def get_ranked_doctors(issue: str, dosha: str, therapy: str) -> list[dict[str, A
 
 @app.get("/")
 def home():
-    return jsonify(
-        {
-            "message": "E-Panchakarma backend is running",
-            "api_prefix": "/api",
-            "time": datetime.utcnow().isoformat() + "Z",
-        }
-    )
+    return send_from_directory(PROJECT_ROOT, "e-panchakarma.html")
+
+
+@app.get("/images/<path:filename>")
+def frontend_image(filename: str):
+    return send_from_directory(os.path.join(PROJECT_ROOT, "images"), filename)
 
 
 @app.get("/health")
