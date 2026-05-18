@@ -945,6 +945,252 @@ h2,h3,h4,h5{
     width:100% !important;
     height:320px !important;
 }
+
+/* Responsive polish */
+*,
+*::before,
+*::after{
+    box-sizing:border-box;
+}
+
+img,
+canvas,
+video,
+svg{
+    max-width:100%;
+}
+
+body.p-4{
+    padding:clamp(10px, 2.5vw, 24px) !important;
+}
+
+.container{
+    width:min(100%, 1180px);
+    max-width:1180px;
+    padding-left:clamp(8px, 2vw, 16px);
+    padding-right:clamp(8px, 2vw, 16px);
+}
+
+.hero-img{
+    width:clamp(92px, 14vw, 180px);
+    max-width:42vw;
+}
+
+.site-hero h2{
+    font-size:clamp(1.55rem, 4vw, 2.3rem);
+    line-height:1.15;
+}
+
+.card,
+.doctor-panel,
+.patient-panel,
+.suggestion-card,
+.terms-content{
+    overflow-wrap:anywhere;
+}
+
+.form-control,
+.form-select,
+.btn{
+    min-width:0;
+}
+
+.btn{
+    white-space:normal;
+}
+
+.list-group-item{
+    overflow-wrap:anywhere;
+}
+
+.therapy-img{
+    display:block;
+    max-height:420px;
+    object-fit:cover;
+}
+
+.doctor-list,
+.patient-list{
+    overscroll-behavior:contain;
+}
+
+@media (max-width: 992px){
+    .doctor-grid,
+    .patient-panel-grid{
+        grid-template-columns:1fr;
+    }
+
+    .doctor-topline,
+    .patient-topline{
+        align-items:stretch;
+    }
+
+    .doctor-identity,
+    .patient-identity{
+        width:100%;
+        min-width:0;
+    }
+
+    .dashboard-main h3{
+        font-size:clamp(2.25rem, 7vw, 3.4rem);
+    }
+}
+
+@media (max-width: 768px){
+    .site-hero{
+        margin-bottom:14px !important;
+    }
+
+    .card{
+        border-radius:18px;
+    }
+
+    .top-toolbar-wrap{
+        top:8px;
+        margin-bottom:14px;
+    }
+
+    .top-toolbar{
+        display:grid;
+        grid-template-columns:repeat(4, minmax(0, 1fr));
+        align-items:center;
+    }
+
+    .top-toolbar .btn{
+        width:100%;
+        min-height:38px;
+        padding-left:8px;
+        padding-right:8px;
+    }
+
+    .language-label{
+        grid-column:1 / 2;
+        margin-left:0;
+        text-align:left;
+    }
+
+    .language-select{
+        grid-column:2 / 5;
+        width:100%;
+        min-width:0;
+    }
+
+    .dashboard-sidebar{
+        position:static;
+        padding:20px 16px;
+    }
+
+    .dashboard-brand{
+        margin-bottom:14px;
+    }
+
+    .dashboard-brand h4{
+        font-size:clamp(1.7rem, 8vw, 2.25rem);
+    }
+
+    .dashboard-actions{
+        display:grid;
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:10px;
+    }
+
+    .sidebar-link{
+        min-height:44px;
+        padding:10px 12px;
+        text-align:center;
+    }
+
+    .doctor-panel,
+    .patient-panel{
+        padding:16px;
+        border-radius:18px;
+    }
+
+    .therapy-img{
+        max-height:320px;
+        border-width:3px;
+    }
+}
+
+@media (max-width: 576px){
+    body.p-4{
+        padding:8px !important;
+    }
+
+    .container{
+        padding-left:0;
+        padding-right:0;
+    }
+
+    .site-hero h2{
+        margin-top:10px !important;
+    }
+
+    .top-toolbar{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:8px;
+        border-radius:16px;
+    }
+
+    .language-label{
+        grid-column:1 / 2;
+        align-self:center;
+    }
+
+    .language-select{
+        grid-column:2 / 3;
+    }
+
+    .auth-screen > .card,
+    .page > .card{
+        padding:16px !important;
+    }
+
+    .patient-content{
+        padding:10px;
+    }
+
+    .dashboard-main{
+        padding:22px 16px;
+    }
+
+    .dashboard-highlights,
+    .dashboard-actions,
+    .doctor-dual,
+    .symptom-grid{
+        grid-template-columns:1fr;
+    }
+
+    .doctor-panel .btn-sm{
+        width:100%;
+        margin:4px 0 !important;
+    }
+
+    .ai-popup{
+        left:8px;
+        right:8px;
+        top:10px;
+        transform:translateY(-130%);
+    }
+
+    .ai-popup.show{
+        right:8px;
+        transform:translateY(0);
+    }
+
+    .terms-content{
+        width:calc(100vw - 20px);
+        padding:18px;
+    }
+
+    .result-chart-wrap canvas{
+        height:260px !important;
+    }
+
+    .therapy-detail p:first-child{
+        font-size:16px;
+    }
+}
 </style>
 </head>
 <body class="p-4">

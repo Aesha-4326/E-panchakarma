@@ -186,11 +186,54 @@ http://127.0.0.1:5000
 
 This serves `e-panchakarma.html` and the `images/` folder together, so therapy images also load when the app is opened from another device.
 
-To open the app from another phone or laptop on the same Wi-Fi, use this computer's local network IP address:
+## View On Another Device
+
+To open the app from another phone or laptop on the same Wi-Fi, first find this computer's local network IP address.
+
+On Windows PowerShell, run:
+
+```powershell
+ipconfig
+```
+
+Look for the `IPv4 Address` under your Wi-Fi adapter. It usually looks like `192.168.1.25` or `192.168.0.10`.
+
+Then open this URL on the other device:
 
 ```text
 http://YOUR_COMPUTER_IP:5000
 ```
+
+Example:
+
+```text
+http://192.168.1.25:5000
+```
+
+Both devices must be connected to the same Wi-Fi network.
+
+### Windows Firewall
+
+If the app opens on this computer but not on another device, Windows Firewall may be blocking port `5000`.
+
+Allow Python or port `5000` through Windows Firewall:
+
+1. Open Windows Security.
+2. Go to Firewall & network protection.
+3. Click Allow an app through firewall.
+4. Allow Python for Private networks.
+
+If needed, create an inbound firewall rule for TCP port `5000` on Private networks.
+
+## Deploy Online Later
+
+For public access without the same Wi-Fi requirement, deploy the project online. A typical setup is:
+
+- Host the Flask backend on a service such as Render, Railway, Fly.io, or a VPS.
+- Use a hosted MySQL database or the database service provided by your host.
+- Move secrets from `.env.local` into the host's environment variables.
+- Update CORS and frontend API settings for the deployed domain.
+- Serve the frontend from Flask or deploy it separately on Netlify/Vercel if you split it into static files later.
 
 For the best experience during development, run the backend locally and keep the frontend and API base URLs aligned if you customize them.
 
