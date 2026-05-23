@@ -148,12 +148,6 @@ GOOGLE_CLIENT_ID=your_google_web_client_id.apps.googleusercontent.com
 GOOGLE_AUDIENCE_STRICT=false
 ```
 
-Important:
-
-- Do not publish real passwords or secrets in GitHub
-- Update Firebase and Google credentials before production use
-- SMTP settings are required for OTP email login
-
 ### 4. Start the backend
 
 PowerShell:
@@ -224,18 +218,6 @@ Allow Python or port `5000` through Windows Firewall:
 4. Allow Python for Private networks.
 
 If needed, create an inbound firewall rule for TCP port `5000` on Private networks.
-
-## Deploy Online Later
-
-For public access without the same Wi-Fi requirement, deploy the project online. A typical setup is:
-
-- Host the Flask backend on a service such as Render, Railway, Fly.io, or a VPS.
-- Use a hosted MySQL database or the database service provided by your host.
-- Move secrets from `.env.local` into the host's environment variables.
-- Update CORS and frontend API settings for the deployed domain.
-- Serve the frontend from Flask or deploy it separately on Netlify/Vercel if you split it into static files later.
-
-For the best experience during development, run the backend locally and keep the frontend and API base URLs aligned if you customize them.
 
 ## Default Local Backend URL
 
@@ -351,11 +333,3 @@ Authorization: Bearer <token>
 - Improve production deployment setup
 - Add file uploads and richer medical record support
 - Add stronger validation and audit logging
-
-## Repository Tips
-
-For a stronger GitHub presentation, add:
-
-- A repository description
-- Topics such as `ayurveda`, `panchakarma`, `flask`, `mysql`, `healthcare`, `webapp`
-- Screenshots of the patient dashboard and doctor dashboard
