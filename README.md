@@ -2,9 +2,7 @@
 
 E-Panchakarma is a web-based Ayurvedic healthcare platform that helps patients explore Panchakarma therapies, complete symptom-based dosha analysis, receive therapy recommendations, and connect with doctors for appointments, prescriptions, and follow-up support.
 
-## Short GitHub Description
-
-Use this in the GitHub repository description field:
+## Description
 
 `AI-powered Ayurvedic healthcare platform for dosha analysis, Panchakarma therapy guidance, doctor recommendations, and online appointments.`
 
@@ -113,112 +111,6 @@ Before running the project, make sure you have:
 - Optional: SMTP credentials for OTP emails
 - Optional: Google client credentials for Google Sign-In
 
-## Installation
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Aesha-4326/E-panchakarma.git
-cd E-panchakarma
-```
-
-### 2. Install Python dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Configure environment variables
-
-Create a local `.env.local` file in the project root and add values like these:
-
-```env
-MYSQL_HOST=localhost
-MYSQL_USER=root
-MYSQL_PASSWORD=your_mysql_password
-MYSQL_DATABASE=e_panchakarma
-MYSQL_PORT=3306
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-SMTP_FROM_EMAIL=your_email@gmail.com
-SMTP_FROM_NAME=E-Panchakarma
-GOOGLE_CLIENT_ID=your_google_web_client_id.apps.googleusercontent.com
-GOOGLE_AUDIENCE_STRICT=false
-```
-
-### 4. Start the backend
-
-PowerShell:
-
-```powershell
-python app.py
-```
-
-Or use the helper script:
-
-```powershell
-.\start-backend.cmd
-```
-
-### 5. Initialize the database
-
-After the server starts, run:
-
-```powershell
-Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:5000/init-db"
-```
-
-### 6. Open the frontend
-
-Open the Flask app URL in your browser:
-
-```text
-http://127.0.0.1:5000
-```
-
-This serves `e-panchakarma.html` and the `images/` folder together, so therapy images also load when the app is opened from another device.
-
-## View On Another Device
-
-To open the app from another phone or laptop on the same Wi-Fi, first find this computer's local network IP address.
-
-On Windows PowerShell, run:
-
-```powershell
-ipconfig
-```
-
-Look for the `IPv4 Address` under your Wi-Fi adapter. It usually looks like `192.168.1.25` or `192.168.0.10`.
-
-Then open this URL on the other device:
-
-```text
-http://YOUR_COMPUTER_IP:5000
-```
-
-Example:
-
-```text
-http://192.168.1.25:5000
-```
-
-Both devices must be connected to the same Wi-Fi network.
-
-### Windows Firewall
-
-If the app opens on this computer but not on another device, Windows Firewall may be blocking port `5000`.
-
-Allow Python or port `5000` through Windows Firewall:
-
-1. Open Windows Security.
-2. Go to Firewall & network protection.
-3. Click Allow an app through firewall.
-4. Allow Python for Private networks.
-
-If needed, create an inbound firewall rule for TCP port `5000` on Private networks.
-
 ## Default Local Backend URL
 
 ```text
@@ -318,12 +210,6 @@ Authorization: Bearer <token>
 8. Book an appointment with the suggested doctor.
 9. Log in as doctor to manage the appointment.
 10. Create a prescription or continue communication through chat.
-
-## Notes
-
-- The frontend currently uses CDN resources for Bootstrap, Chart.js, jsPDF, and Firebase.
-- Local files such as `.env.local`, logs, and MySQL runtime data should be handled carefully and are usually not ideal for public repositories.
-- Before production deployment, review secrets, database storage, CORS settings, authentication flows, and frontend API configuration.
 
 ## Future Improvements
 
