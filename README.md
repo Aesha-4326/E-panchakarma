@@ -4,15 +4,21 @@ E-Panchakarma is a web-based Ayurvedic healthcare platform that helps patients e
 
 ## Description
 
-`AI-powered Ayurvedic healthcare platform for dosha analysis, Panchakarma therapy guidance, doctor recommendations, and online appointments.`
+web based Ayurvedic healthcare platform for dosha analysis, Panchakarma therapy guidance, doctor recommendations, and online appointments.`
 
 ## Project Overview
 
-This project combines a patient-facing frontend with a Flask + MySQL backend for a more complete digital Panchakarma workflow.
+This project  is a full-stack web application that digitizes Ayurvedic Panchakarma healthcare services. The platform enables patients to perform symptom-based dosha analysis, receive Panchakarma therapy recommendations, book appointments with Ayurvedic doctors, and manage prescriptions through a secure online portal.
 
-Patients can:
+The system also provides doctors with tools to manage appointments, generate prescriptions, communicate with patients, and monitor treatment progress.
+
+
+## Features
+
+##Patients can:
 
 - Register and log in with password, OTP, or Google Sign-In
+- Patient Registration & Profile Management
 - Complete symptom-based dosha analysis
 - View recommended Panchakarma therapies and lifestyle guidance
 - Book appointments with recommended doctors
@@ -26,9 +32,17 @@ Doctors can:
 - Manage appointments and patient activity
 - Update appointment status or reschedule visits
 - Search patients by issue, dosha pattern, or profile details
-- Create prescriptions
+- Create & Update prescriptions
 - Chat with patients inside the system
 - View dashboard summaries and notifications
+
+## Admin Module
+
+- Manage Patients
+- Manage Doctors
+- Monitor Appointments
+- View System Reports
+- Database Management
 
 ## Main Features
 
@@ -46,8 +60,8 @@ Doctors can:
 
 ## Tech Stack
 
-- Frontend: HTML, CSS, JavaScript, Bootstrap, Chart.js, jsPDF, Firebase Auth
-- Backend: Python, Flask, Flask-CORS
+- Frontend: HTML5, CSS3, JavaScript(ES6), Bootstrap5, Chart.js, jsPDF, Firebase Auth
+- Backend: Python, Flask, Flask-CORS, REST APIs
 - Database: MySQL
 - Auth/Integrations: Google Sign-In, SMTP email OTP
 
@@ -64,6 +78,54 @@ Doctors can:
 |-- start-backend.ps1       # Local backend startup script
 |-- stop-backend.ps1        # Local backend shutdown script
 |-- init-backend.ps1        # Backend initialization helper
+│
+├── static/
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+├── templates/
+│
+└── database/
+    └── MySQL Tables
+```
+
+##  Installation
+
+### Clone Repository
+
+```bash
+git clone https://github.com/Aesha-4326/E-Panchakarma.git
+```
+
+### Navigate to Project
+
+```bash
+cd E-Panchakarma
+```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Configure Database
+
+* Create a MySQL database.
+* Update database credentials in `app.py`.
+* Import the required tables.
+
+### Run the Application
+
+```bash
+python app.py
+```
+
+The application will start on:
+
+```
+http://localhost:5000
 ```
 
 ## Frontend Highlights
@@ -100,103 +162,15 @@ The backend is implemented in `app.py` and provides:
 - Patient-doctor chat APIs
 - Notification endpoints
 
-## Requirements
+## Security Features
 
-Before running the project, make sure you have:
-
-- Python 3.10 or newer
-- MySQL Server
-- `pip`
-- Internet access for CDN-hosted frontend libraries
-- Optional: SMTP credentials for OTP emails
-- Optional: Google client credentials for Google Sign-In
-
-## Default Local Backend URL
-
-```text
-http://127.0.0.1:5000
-```
-
-## Key API Endpoints
-
-### Health
-
-- `GET /health`
-- `GET /db-check`
-- `POST /init-db`
-
-### Patient Authentication
-
-- `POST /api/auth/patient/register`
-- `POST /api/auth/patient/login`
-- `POST /api/auth/patient/request-otp`
-- `POST /api/auth/patient/login-otp`
-- `POST /api/auth/google`
-
-### Doctor Authentication
-
-- `POST /api/auth/doctor/register`
-- `POST /api/auth/doctor/login`
-- `POST /api/auth/doctor/request-otp`
-- `POST /api/auth/doctor/login-otp`
-- `POST /api/auth/doctor/google`
-
-### Shared Auth
-
-- `POST /api/auth/logout`
-
-### Doctors
-
-- `GET /api/doctors`
-- `GET /api/doctors/recommend`
-- `GET /api/doctor/profile`
-- `PATCH /api/doctor/profile`
-- `GET /api/doctor/dashboard`
-- `GET /api/doctor/patients`
-
-### Analysis
-
-- `POST /api/analysis`
-- `GET /api/analysis/latest`
-
-### Appointments
-
-- `POST /api/appointments`
-- `GET /api/appointments/my`
-- `GET /api/doctor/appointments`
-- `PATCH /api/doctor/appointments/<id>/status`
-- `PATCH /api/doctor/appointments/<id>/reschedule`
-
-### Prescriptions
-
-- `GET /api/doctor/prescriptions`
-- `POST /api/doctor/prescriptions`
-- `GET /api/patient/prescriptions`
-
-### Chat
-
-- `GET /api/doctor/chat/<appointment_id>`
-- `POST /api/doctor/chat/<appointment_id>`
-- `GET /api/patient/chat/<appointment_id>`
-- `POST /api/patient/chat/<appointment_id>`
-
-### Notifications
-
-- `GET /api/patient/notifications`
-- `GET /api/doctor/notifications`
-
-### Miscellaneous
-
-- `GET /api/medicines/suggest`
-- `GET /api/patient/profile`
-
-## Authorization
-
-After login or registration, send the session token in the request header:
-
-```text
-Authorization: Bearer <token>
-```
+* OTP-Based Authentication
+* Google OAuth Login
+* Role-Based Access Control
+* Input Validation
+* Secure REST APIs
+* Database Authentication
+* Session Management
 
 ## Sample User Flow
 
@@ -213,9 +187,17 @@ Authorization: Bearer <token>
 
 ## Future Improvements
 
-- Split frontend HTML, CSS, and JavaScript into separate modules
-- Add role-based admin features
+- Online Video Consultation
+- Digital Payment Gateway
+- Android & iOS Mobile Applications
+- AI Chatbot for 24×7 Assistance
 - Add automated tests for backend APIs
-- Improve production deployment setup
 - Add file uploads and richer medical record support
 - Add stronger validation and audit logging
+- Advanced Health Analytics Dashboard
+
+## Author
+
+Aesha Narola
+B.Tech Information Technology
+github: https://github.com/Aesha-4326/E-panchakarma
