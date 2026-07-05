@@ -52,15 +52,15 @@ DB_NAME = os.getenv("MYSQL_DATABASE", "e_panchakarma")
 DB_CONFIG = {
     "host": os.getenv("MYSQL_HOST", "localhost"),
     "user": os.getenv("MYSQL_USER", "root"),
-    "password": os.getenv("MYSQL_PASSWORD", ""),
+    "password": os.getenv("MYSQL_PASSWORD", "7#2A7Eea"),
     "database": DB_NAME,
-    "port": int(os.getenv("MYSQL_PORT", "3306")),
+    "port": int(os.getenv("MYSQL_PORT", "3307")),
 }
 DB_SERVER_CONFIG = {
     "host": os.getenv("MYSQL_HOST", "localhost"),
     "user": os.getenv("MYSQL_USER", "root"),
     "password": os.getenv("MYSQL_PASSWORD", ""),
-    "port": int(os.getenv("MYSQL_PORT", "3306")),
+    "port": int(os.getenv("MYSQL_PORT", "3307")),
 }
 GOOGLE_CLIENT_IDS = [
     client_id.strip()

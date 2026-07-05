@@ -152,7 +152,7 @@ body::before{
 
 .top-toolbar{
     display:flex;
-    justify-content:flex-end;
+    justify-content:space-between;
     align-items:center;
     gap:10px;
     flex-wrap:wrap;
@@ -161,6 +161,32 @@ body::before{
     background:rgba(255,255,255,0.82);
     backdrop-filter:blur(10px);
     box-shadow:0 14px 30px rgba(31,74,41,0.12);
+}
+
+.toolbar-brand{
+    display:flex;
+    align-items:center;
+    min-width:0;
+}
+
+.toolbar-logo{
+    display:block;
+    width:clamp(150px, 18vw, 230px);
+    height:54px;
+    object-fit:contain;
+    object-position:left center;
+    border-radius:12px;
+    background:#fff;
+    padding:4px 8px;
+}
+
+.toolbar-actions{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    min-width:0;
 }
 
 .patient-layout-shell{
@@ -493,6 +519,15 @@ body::before{
         border-radius:18px;
     }
 
+    .toolbar-logo{
+        width:clamp(132px, 42vw, 190px);
+        height:48px;
+    }
+
+    .toolbar-actions{
+        gap:8px;
+    }
+
     #patientLayout{
         padding:0 12px 22px;
     }
@@ -788,11 +823,16 @@ h2,h3,h4,h5{
 }
 
 .therapy-img{
-    width:100%;
+    width:auto;
+    max-width:min(100%, 560px);
+    max-height:300px;
+    object-fit:contain;
+    object-position:center;
     border-radius:14px;
-    margin-top:14px;
+    margin:14px auto 0;
     border:4px solid rgba(255,255,255,0.9);
     box-shadow:0 18px 30px rgba(33,79,43,0.14);
+    background:#f8fbf4;
 }
 
 .spinner{
@@ -844,7 +884,7 @@ h2,h3,h4,h5{
 }
 
 .dark-mode .symptom-box{
-    background:transparent; 
+    background:transparent;
     border:0;
 }
 
@@ -1005,8 +1045,10 @@ body.p-4{
 
 .therapy-img{
     display:block;
-    max-height:420px;
-    object-fit:cover;
+    height:auto;
+    object-fit:contain;
+    object-position:center;
+    background:#f8fbf4;
 }
 
 .doctor-list,
@@ -1051,12 +1093,21 @@ body.p-4{
     }
 
     .top-toolbar{
-        display:grid;
-        grid-template-columns:repeat(4, minmax(0, 1fr));
+        display:flex;
         align-items:center;
     }
 
-    .top-toolbar .btn{
+    .toolbar-brand{
+        flex:1 1 100%;
+    }
+
+    .toolbar-actions{
+        display:grid;
+        grid-template-columns:repeat(4, minmax(0, 1fr));
+        width:100%;
+    }
+
+    .toolbar-actions .btn{
         width:100%;
         min-height:38px;
         padding-left:8px;
@@ -1107,7 +1158,8 @@ body.p-4{
     }
 
     .therapy-img{
-        max-height:320px;
+        max-width:100%;
+        max-height:240px;
         border-width:3px;
     }
 }
@@ -1127,9 +1179,18 @@ body.p-4{
     }
 
     .top-toolbar{
-        grid-template-columns:repeat(2, minmax(0, 1fr));
         gap:8px;
         border-radius:16px;
+    }
+
+    .toolbar-logo{
+        width:min(100%, 170px);
+        height:44px;
+    }
+
+    .toolbar-actions{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:8px;
     }
 
     .language-label{
@@ -1197,16 +1258,21 @@ body.p-4{
 
 <div class="top-toolbar-wrap">
 <div class="top-toolbar">
-<button class="btn btn-sm" id="navBackBtn" onclick="window.history.back()">Back</button>
-<button class="btn btn-sm" id="navForwardBtn" onclick="window.history.forward()">Forward</button>
-<button class="btn btn-sm" id="navReloadBtn" onclick="location.reload()">Reload</button>
-<button class="btn btn-sm" id="darkModeBtn" onclick="toggleDarkMode()">Dark Mode</button>
-<label class="language-label" id="languageLabel" for="languageSelect">Language</label>
-<select id="languageSelect" class="form-select form-select-sm language-select" onchange="setLanguage(this.value)">
-    <option value="en">English</option>
-    <option value="hi">Hindi</option>
-    <option value="gu">Gujarati</option>
-</select>
+<div class="toolbar-brand">
+    <img src="images/E-Panchakarma.jpg" alt="E-Panchakarma" class="toolbar-logo">
+</div>
+<div class="toolbar-actions">
+    <button class="btn btn-sm" id="navBackBtn" onclick="window.history.back()">Back</button>
+    <button class="btn btn-sm" id="navForwardBtn" onclick="window.history.forward()">Forward</button>
+    <button class="btn btn-sm" id="navReloadBtn" onclick="location.reload()">Reload</button>
+    <button class="btn btn-sm" id="darkModeBtn" onclick="toggleDarkMode()">Dark Mode</button>
+    <label class="language-label" id="languageLabel" for="languageSelect">Language</label>
+    <select id="languageSelect" class="form-select form-select-sm language-select" onchange="setLanguage(this.value)">
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+        <option value="gu">Gujarati</option>
+    </select>
+</div>
 </div>
 </div>
 
@@ -1219,14 +1285,13 @@ body.p-4{
 </div>
 
 <div class="text-center mb-4 site-hero" id="siteHero">
-    <img src="images/logo.png" alt="Panchakarma banner" class="hero-img" width="1" height="1">
-    <h2 class="text-success mt-3">E-Panchakarma AI Health System</h2>
+    <img src="images/E-Panchakarma.jpg" alt="Panchakarma banner" class="hero-img" width="1" height="1">
 </div>
 
 <div class="container">
     <div class="page page-default auth-screen" id="loginPage" style="display:block;">
         <div class="card p-4 shadow">
-            
+
             <div id="termsModal" class="terms-modal">
                 <div class="terms-content">
                     <h4 class="text-danger">Terms & Conditions</h4>
@@ -1717,7 +1782,7 @@ body.p-4{
                 <p>Basti must be done by an expert. It should be avoided during diarrhea, fever, and bleeding disorders, and heavy meals should be avoided before and after treatment.</p>
                 <p><b>Benefits of Basti Therapy</b></p>
                 <p>It helps relieve constipation, reduce joint and back pain, improve digestion, strengthen the nervous system, and detoxify the colon.</p>
-                <img id="bastiStaticImg" src="images/Basti_Therapy.jpg" class="therapy-img" alt="Basti therapy">
+                <img id="bastiStaticImg" src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
             </div>
 
             <button class="btn btn-warning w-100 mt-2" onclick="toggleBox('nasyaBox')">Nasya (Nasal Therapy)</button>
@@ -1921,7 +1986,7 @@ function getRankedDoctors(issue){
     .sort((a,b)=>b.score - a.score || a.profile.name.localeCompare(b.profile.name));
 }
 
-function updateDoctorRecommendation(){  
+function updateDoctorRecommendation(){
     const issue = document.getElementById("patientIssue") ? document.getElementById("patientIssue").value : "";
     const select = document.getElementById("doctorSelect");
     const suggestedDoctorName = document.getElementById("suggestedDoctorName");
@@ -2547,7 +2612,7 @@ function loadResult(){
         therapy="Basti Therapy (Medicated Enema)";
         diet="Warm foods, oil massage, proper sleep";
         description="Basti supports Vata balance, nourishes tissues, and helps improve digestion and nervous system stability.";
-        image="images/Basti_Therapy.jpg";
+        image="images/Basti_therapy.jpg";
     }else if(dosha==="Pitta"){
         therapy="Virechana Therapy (Purgation)";
         diet="Cooling foods, avoid spicy and oily meals";
@@ -2562,7 +2627,7 @@ function loadResult(){
         therapy="Complete the symptom analysis to see recommendations";
         diet="Balanced routine and light meals";
         description="Your therapy recommendation will appear after the analysis step.";
-        image="images/logo.png";
+        image="images/E-Panchakarma.jpg";
     }
 
     localStorage.setItem("therapy",therapy);
@@ -2633,7 +2698,7 @@ showPage("loginPage", false);
         if(!img){ return; }
         img.onerror = function(){
             this.onerror = null;
-            this.src = assetUrl("logo.png");
+            this.src = assetUrl("E-Panchakarma.jpg");
         };
         img.src = assetUrl(fileName);
     }
@@ -2641,7 +2706,7 @@ showPage("loginPage", false);
     function setupTherapyStaticImages(){
         setImageWithFallback("vamanaStaticImg", "Vamana_therapy.jpg");
         setImageWithFallback("virechanaStaticImg", "Virechana_therapy.jpg");
-        setImageWithFallback("bastiStaticImg", "Basti_Therapy.jpg");
+        setImageWithFallback("bastiStaticImg", "Basti_therapy.jpg");
         setImageWithFallback("nasyaStaticImg", "Nasya_therapy.jpg");
         setImageWithFallback("raktamokshanaStaticImg", "Raktamokshana_therapy.jpg");
     }
@@ -2737,10 +2802,10 @@ showPage("loginPage", false);
     }
 
     function therapyImage(therapy){
-        if((therapy || "").includes("Basti")) return assetUrl("Basti_Therapy.jpg");
+        if((therapy || "").includes("Basti")) return assetUrl("Basti_therapy.jpg");
         if((therapy || "").includes("Virechana")) return assetUrl("Virechana_therapy.jpg");
         if((therapy || "").includes("Vamana")) return assetUrl("Vamana_therapy.jpg");
-        return assetUrl("logo.png");
+        return assetUrl("E-Panchakarma.jpg");
     }
 
     async function refreshDoctorHint(){
@@ -3929,7 +3994,7 @@ showPage("loginPage", false);
                 <p>बस्ति विशेषज्ञ द्वारा ही करनी चाहिए। दस्त, बुखार और रक्तस्राव विकारों में इससे बचना चाहिए, तथा उपचार से पहले और बाद में भारी भोजन नहीं लेना चाहिए।</p>
                 <p><b>बस्ति थेरेपी के लाभ</b></p>
                 <p>यह कब्ज दूर करने, जोड़ों और कमर दर्द कम करने, पाचन सुधारने, तंत्रिका तंत्र को मजबूत करने और कोलन की शुद्धि में मदद करती है।</p>
-                <img id="bastiStaticImg" src="images/Basti_Therapy.jpg" class="therapy-img" alt="Basti therapy">
+                <img id="bastiStaticImg" src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
             `,
             nasya: `
                 <p><b>नस्य थेरेपी क्या है?</b></p>
@@ -4043,7 +4108,7 @@ showPage("loginPage", false);
                 <p>બસ્તી નિષ્ણાત દ્વારા જ કરવી જોઈએ. ડાયરીયા, તાવ અને બ્લીડિંગ ડિસઓર્ડરમાં આથી બચવું જોઈએ અને સારવાર પહેલા તથા પછી ભારે ભોજન ટાળવું જોઈએ.</p>
                 <p><b>બસ્તી થેરાપીના લાભો</b></p>
                 <p>આ કબજિયાતમાં રાહત, સાંધા અને કમરના દુખાવામાં ઘટાડો, પાચન સુધારવું, નર્વસ સિસ્ટમને મજબૂત બનાવવું અને કોલનનું શુદ્ધિકરણ કરવામાં મદદ કરે છે.</p>
-                <img id="bastiStaticImg" src="images/Basti_Therapy.jpg" class="therapy-img" alt="Basti therapy">
+                <img id="bastiStaticImg" src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
             `,
             nasya: `
                 <p><b>નસ્ય થેરાપી શું છે?</b></p>
@@ -4437,4 +4502,3 @@ showPage("loginPage", false);
 </script>
 </body>
 </html>
-  

@@ -1,9 +1,11 @@
+[string]$MySqlPassword = "7#2A7Eea"
+
 param(
     [string]$MySqlHost = "127.0.0.1",
     [string]$MySqlUser = "root",
     [string]$MySqlPassword = "",
     [string]$MySqlDatabase = "e_panchakarma",
-    [string]$MySqlPort = "3306",
+    [string]$MySqlPort = "3307",
     [string]$GoogleClientId = "",
     [string]$SmtpHost = "",
     [string]$SmtpPort = "",
@@ -77,7 +79,7 @@ $MySqlHost = Resolve-Setting "MySqlHost" $MySqlHost "MYSQL_HOST" "127.0.0.1"
 $MySqlUser = Resolve-Setting "MySqlUser" $MySqlUser "MYSQL_USER" "root"
 $MySqlPassword = Resolve-Setting "MySqlPassword" $MySqlPassword "MYSQL_PASSWORD" ""
 $MySqlDatabase = Resolve-Setting "MySqlDatabase" $MySqlDatabase "MYSQL_DATABASE" "e_panchakarma"
-$MySqlPort = Resolve-Setting "MySqlPort" $MySqlPort "MYSQL_PORT" "3306"
+$MySqlPort = Resolve-Setting "MySqlPort" $MySqlPort "MYSQL_PORT" "3307"
 $GoogleClientId = Resolve-Setting "GoogleClientId" $GoogleClientId "GOOGLE_CLIENT_ID" ""
 $SmtpHost = Resolve-Setting "SmtpHost" $SmtpHost "SMTP_HOST" ""
 $SmtpPort = Resolve-Setting "SmtpPort" $SmtpPort "SMTP_PORT" ""
