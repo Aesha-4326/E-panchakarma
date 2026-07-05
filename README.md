@@ -17,7 +17,7 @@ The system also provides doctors with tools to manage appointments, generate pre
 
 ##Patients can:
 
-- Register and log in with password, OTP, or Google Sign-In
+- Register and log in with OTP
 - Patient Registration & Profile Management
 - Complete symptom-based dosha analysis
 - View recommended Panchakarma therapies and lifestyle guidance
@@ -28,7 +28,7 @@ The system also provides doctors with tools to manage appointments, generate pre
 
 Doctors can:
 
-- Register and log in with password, OTP, or Google Sign-In
+- Register and log in with OTP
 - Manage appointments and patient activity
 - Update appointment status or reschedule visits
 - Search patients by issue, dosha pattern, or profile details
@@ -51,7 +51,6 @@ Doctors can:
 - Doctor recommendation engine based on issue, dosha, and therapy match
 - Patient and doctor authentication
 - OTP email login support
-- Google Sign-In support
 - Appointment booking and management
 - Prescription creation and patient access
 - Doctor-patient chat per appointment
@@ -153,7 +152,6 @@ The backend is implemented in `app.py` and provides:
 - Database bootstrap and connection helpers
 - Patient and doctor authentication APIs
 - OTP request and verification flows
-- Google Sign-In verification
 - Dosha analysis storage
 - Doctor recommendation endpoints
 - Appointment creation, listing, status update, and rescheduling
@@ -165,7 +163,6 @@ The backend is implemented in `app.py` and provides:
 ## Security Features
 
 * OTP-Based Authentication
-* Google OAuth Login
 * Role-Based Access Control
 * Input Validation
 * Secure REST APIs
