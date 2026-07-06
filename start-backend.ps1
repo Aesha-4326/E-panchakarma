@@ -1,5 +1,3 @@
-[string]$MySqlPassword = "7#2A7Eea"
-
 param(
     [string]$MySqlHost = "127.0.0.1",
     [string]$MySqlUser = "root",

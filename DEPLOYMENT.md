@@ -15,7 +15,7 @@ MYSQL_HOST=your_mysql_host
 MYSQL_USER=your_mysql_user
 MYSQL_PASSWORD=your_mysql_password
 MYSQL_DATABASE=e_panchakarma
-MYSQL_PORT=3306
+MYSQL_PORT=3307
 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
@@ -30,8 +30,6 @@ APP_DEBUG=false
 GOOGLE_CLIENT_ID=
 GOOGLE_AUDIENCE_STRICT=false
 ```
-
-Do not upload `.env.local` to GitHub or the hosting platform.
 
 ## Render/Railway Style Settings
 
@@ -62,11 +60,3 @@ Images will appear after deployment because they are inside the project `images/
 images/E-Panchakarma.jpg
 images/Vamana_therapy.jpg
 ```
-
-Make sure the `images/` folder is committed and deployed with the repo.
-
-## Important Notes
-
-- The app needs a hosted MySQL database. Local `mysql-data/` is ignored and should not be deployed.
-- Gmail OTP needs a Gmail App Password, not your normal Gmail password.
-- If Google Sign-In is used, add the deployed domain to the Google OAuth configuration.
