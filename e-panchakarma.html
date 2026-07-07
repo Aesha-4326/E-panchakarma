@@ -2711,14 +2711,15 @@ showPage("loginPage", false);
         setImageWithFallback("raktamokshanaStaticImg", "Raktamokshana_therapy.jpg");
     }
 
-    const API_BASE = (() => {
-        const saved = localStorage.getItem("ep_api_base");
-        if(saved){ return saved; }
-        if(window.location.protocol === "file:"){ return "http://127.0.0.1:5000"; }
-        const host = window.location.hostname || "127.0.0.1";
-        if(host === "localhost" || host === "127.0.0.1"){ return "http://127.0.0.1:5000"; }
-        return window.location.protocol + "//" + host + ":5000";
-    })();
+   const API_BASE = (() => {
+    const saved = localStorage.getItem("ep_api_base");
+    if(saved) { return saved; }
+    if(window.location.protocol === "file:") { return "http://127.0.0.1:5000"; }
+    const host = window.location.hostname || "127.0.0.1";
+    if (host === "localhost" || host === "127.0.0.1") { return "http://127.0.0.1:5000"; }
+    return window.location.protocol + "//" + host;
+})();
+
     let backendWarningShown = false;
     let doctorStatsChart = null;
     const state = {
