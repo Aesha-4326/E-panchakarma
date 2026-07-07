@@ -31,6 +31,18 @@ GOOGLE_CLIENT_ID=
 GOOGLE_AUDIENCE_STRICT=false
 ```
 
+Railway MySQL may provide these variable names instead:
+
+```env
+MYSQLHOST=...
+MYSQLUSER=...
+MYSQLPASSWORD=...
+MYSQLDATABASE=...
+MYSQLPORT=...
+```
+
+The backend supports both naming styles. On a deployed web service, do not use `MYSQL_HOST=127.0.0.1` unless MySQL is running inside the same container.
+
 ## Render/Railway Style Settings
 
 Use these values for a Python web service:

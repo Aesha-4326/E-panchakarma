@@ -7,6 +7,7 @@ import os
 import secrets
 import smtplib
 from typing import Any
+from urllib.parse import urlparse
 
 from flask import Flask, g, jsonify, request, send_from_directory
 from flask_cors import CORS
@@ -48,20 +49,60 @@ app = Flask(__name__)
 CORS(app)
 
 
-DB_NAME = os.getenv("MYSQL_DATABASE", "e_panchakarma")
+def env_first(*names: str, default: str = "") -> str:
+    for name in names:
+        value = os.getenv(name)
+        if value is not None and value != "":
+            return value
+    return default
+
+
+def database_config_from_url(database_url: str) -> dict[str, Any] | None:
+    if not database_url:
+        return None
+
+    parsed = urlparse(database_url)
+    if not parsed.hostname:
+        return None
+
+    return {
+        "host": parsed.hostname,
+        "user": parsed.username or "root",
+        "password": parsed.password or "",
+        "database": parsed.path.lstrip("/") or "e_panchakarma",
+        "port": parsed.port or 3306,
+    }
+
+
+URL_DB_CONFIG = database_config_from_url(env_first("DATABASE_URL", "MYSQL_URL"))
+DB_NAME = (
+    URL_DB_CONFIG["database"]
+    if URL_DB_CONFIG
+    else env_first("MYSQL_DATABASE", "MYSQLDATABASE", default="e_panchakarma")
+)
 DB_CONFIG = {
-    "host": os.getenv("MYSQL_HOST", "localhost"),
-    "user": os.getenv("MYSQL_USER", "root"),
-    "password": os.getenv("MYSQL_PASSWORD", ""),
+    "host": env_first("MYSQL_HOST", "MYSQLHOST", default="localhost"),
+    "user": env_first("MYSQL_USER", "MYSQLUSER", default="root"),
+    "password": env_first("MYSQL_PASSWORD", "MYSQLPASSWORD", default=""),
     "database": DB_NAME,
-    "port": int(os.getenv("MYSQL_PORT", "3307")),
+    "port": int(env_first("MYSQL_PORT", "MYSQLPORT", default="3307")),
 }
 DB_SERVER_CONFIG = {
-    "host": os.getenv("MYSQL_HOST", "localhost"),
-    "user": os.getenv("MYSQL_USER", "root"),
-    "password": os.getenv("MYSQL_PASSWORD", ""),
-    "port": int(os.getenv("MYSQL_PORT", "3307")),
+    "host": DB_CONFIG["host"],
+    "user": DB_CONFIG["user"],
+    "password": DB_CONFIG["password"],
+    "port": DB_CONFIG["port"],
 }
+if URL_DB_CONFIG:
+    DB_CONFIG.update(URL_DB_CONFIG)
+    DB_SERVER_CONFIG.update(
+        {
+            "host": URL_DB_CONFIG["host"],
+            "user": URL_DB_CONFIG["user"],
+            "password": URL_DB_CONFIG["password"],
+            "port": URL_DB_CONFIG["port"],
+        }
+    )
 GOOGLE_CLIENT_IDS = [
     client_id.strip()
     for client_id in os.getenv("GOOGLE_CLIENT_ID", "").split(",")
