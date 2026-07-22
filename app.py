@@ -85,7 +85,7 @@ DB_CONFIG = {
     "user": env_first("MYSQL_USER", "MYSQLUSER", default="root"),
     "password": env_first("MYSQL_PASSWORD", "MYSQLPASSWORD", default=""),
     "database": DB_NAME,
-    "port": int(env_first("MYSQL_PORT", "MYSQLPORT", default="3307")),
+    "port": int(env_first("MYSQL_PORT", "MYSQLPORT", default="3306")),
 }
 DB_SERVER_CONFIG = {
     "host": DB_CONFIG["host"],
@@ -552,16 +552,16 @@ def request_login_otp(user_type: str):
 
     latest_otp = fetch_one(
         """
-        SELECT id, created_at
+        SELECT id
         FROM login_otps
         WHERE user_type = %s AND email = %s AND consumed_at IS NULL
+          AND created_at > NOW() - INTERVAL %s SECOND
         ORDER BY created_at DESC
         LIMIT 1
         """,
-        (user_type, email),
+        (user_type, email, OTP_RESEND_COOLDOWN_SECONDS),
     )
-    created_at = parse_datetime_value(latest_otp["created_at"]) if latest_otp else None
-    if created_at and created_at > datetime.utcnow() - timedelta(seconds=OTP_RESEND_COOLDOWN_SECONDS):
+    if latest_otp:
         return jsonify(
             {
                 "error": f"Please wait {OTP_RESEND_COOLDOWN_SECONDS} seconds before requesting a new OTP"
@@ -571,10 +571,10 @@ def request_login_otp(user_type: str):
     execute_write(
         """
         UPDATE login_otps
-        SET consumed_at = %s
+        SET consumed_at = NOW()
         WHERE user_type = %s AND email = %s AND consumed_at IS NULL
         """,
-        (datetime.utcnow(), user_type, email),
+        (user_type, email),
     )
 
     otp_code = generate_otp_code()
@@ -766,7 +766,7 @@ def build_patient_notifications(patient_id: int) -> list[dict[str, Any]]:
     appointments = fetch_all(
         """
         SELECT a.id, a.issue, a.status, a.appointment_date, a.appointment_time, a.created_at,
-               d.name AS doctor_name, d.specialty AS doctor_specialty
+        d.name AS doctor_name, d.specialty AS doctor_specialty
         FROM appointments a
         JOIN doctors d ON d.id = a.doctor_id
         WHERE a.patient_id = %s
@@ -813,7 +813,7 @@ def build_doctor_notifications(doctor_id: int) -> list[dict[str, Any]]:
     appointments = fetch_all(
         """
         SELECT a.id, a.issue, a.status, a.appointment_date, a.appointment_time, a.created_at,
-               p.name AS patient_name
+        p.name AS patient_name
         FROM appointments a
         JOIN patients p ON p.id = a.patient_id
         WHERE a.doctor_id = %s

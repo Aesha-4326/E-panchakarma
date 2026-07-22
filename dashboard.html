@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Patient Dashboard</h2>
+
+    <p><b>Your Dosha:</b> <span id="d"></span></p>
+    <p><b>Therapy Plan:</b> <span id="t"></span></p>
+    <p><b>Diet Plan:</b> <span id="di"></span></p>
+
+    <button onclick="location.href='admin.html'">Doctor/Admin View</button>
+</div>
+
+<script>
+document.getElementById("d").innerText = localStorage.getItem("dosha");
+document.getElementById("t").innerText = localStorage.getItem("therapy");
+document.getElementById("di").innerText = localStorage.getItem("diet");
+</script>
+
+</body>
+</html>

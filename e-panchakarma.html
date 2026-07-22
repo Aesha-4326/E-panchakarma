@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&family=Noto+Sans+Gujarati:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="static/css/app.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -25,1234 +26,7 @@ if(window.firebase && !firebase.apps.length){
     firebase.initializeApp(firebaseConfig);
 }
 </script>
-<style>
-:root{
-    --leaf:#2e7d32;
-    --leaf-dark:#1b5e20;
-    --leaf-soft:#73b07a;
-    --sun:#ffd54f;
-    --earth:#5d4037;
-    --paper:#ffffff;
-    --mist:#e8f5e9;
-    --aura:#e4f3db;
-    --sticky-toolbar-top:14px;
-    --sticky-toolbar-offset:96px;
-}
 
-body{
-    font-family:'Poppins','Noto Sans Devanagari','Noto Sans Gujarati',sans-serif;
-    background:
-    radial-gradient(circle at 10% 20%, #d8f0d0 0%, transparent 32%),
-    radial-gradient(circle at 90% 12%, #fff2ca 0%, transparent 28%),
-    radial-gradient(circle at 82% 84%, #d9ecff 0%, transparent 26%),
-    linear-gradient(135deg,#eef8e9,#ffffff 45%,#f7f3df);
-    min-height:100vh;
-    position:relative;
-    overflow-x:hidden;
-}
-
-body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    opacity:0.28;
-    background-image:
-    linear-gradient(120deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 44%),
-    repeating-linear-gradient(45deg, rgba(46,125,50,0.03) 0 6px, rgba(255,255,255,0.03) 6px 12px);
-    z-index:-1;
-}
-
-.page{
-    display:none;
-    animation:fadeIn 0.45s ease;
-}
-
-.page.page-default{
-    display:block;
-}
-
-@keyframes fadeIn{
-    from{opacity:0;transform:translateY(12px);}
-    to{opacity:1;transform:translateY(0);}
-}
-
-.btn{
-    background:linear-gradient(135deg,var(--leaf),#66bb6a);
-    color:#fff !important;
-    border:none !important;
-    border-radius:10px;
-    font-weight:600;
-}
-
-.btn:hover{
-    background:linear-gradient(135deg,var(--leaf-dark),#43a047);
-    transform:translateY(-1px);
-}
-
-.ai-popup{
-    position:fixed;
-    top:20px;
-    right:-420px;
-    background:linear-gradient(45deg,#00c853,#64dd17);
-    color:#fff;
-    padding:14px 22px;
-    border-radius:12px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.25);
-    transition:0.4s ease;
-    z-index:9999;
-}
-
-.ai-popup.show{
-    right:20px;
-}
-
-.ai-popup.error{
-    background:linear-gradient(45deg,#d50000,#ff5252);
-}
-
-.ai-popup.warning{
-    background:linear-gradient(45deg,#ef6c00,#ffa726);
-}
-
-.hero-img{
-    width:5%;
-    max-width:1000px;
-    height:auto;
-    border-radius:20px;
-    box-shadow:0 18px 40px rgba(46,125,50,0.18);
-    border:5px solid rgba(255,255,255,0.65);
-}
-
-.site-hero{
-    transition:opacity 0.2s ease, transform 0.2s ease;
-}
-
-.card{
-    border:none;
-    border-radius:22px;
-    background:rgba(255,255,255,0.88);
-    box-shadow:0 16px 42px rgba(31,74,41,0.12);
-    backdrop-filter:blur(8px);
-}
-
-#patientLayout{
-    max-width:1180px;
-    margin:24px auto 0;
-    padding:0 18px 28px;
-    display:none;
-}
-
-.top-toolbar-wrap{
-    position:sticky;
-    top:var(--sticky-toolbar-top);
-    z-index:2000;
-    margin-bottom:18px;
-}
-
-.top-toolbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-    padding:10px 12px;
-    border-radius:20px;
-    background:rgba(255,255,255,0.82);
-    backdrop-filter:blur(10px);
-    box-shadow:0 14px 30px rgba(31,74,41,0.12);
-}
-
-.toolbar-brand{
-    display:flex;
-    align-items:center;
-    min-width:0;
-}
-
-.toolbar-logo{
-    display:block;
-    width:clamp(150px, 18vw, 230px);
-    height:54px;
-    object-fit:contain;
-    object-position:left center;
-    border-radius:12px;
-    background:#fff;
-    padding:4px 8px;
-}
-
-.toolbar-actions{
-    display:flex;
-    justify-content:flex-end;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-    min-width:0;
-}
-
-.patient-layout-shell{
-    display:grid;
-    grid-template-columns:280px minmax(0,1fr);
-    min-height:70vh;
-    border-radius:28px;
-    overflow:visible;
-    background:rgba(255,255,255,0.9);
-    box-shadow:0 18px 46px rgba(31,74,41,0.14);
-    backdrop-filter:blur(10px);
-}
-
-#patientLayout.doctor-mode .dashboard-sidebar{
-    display:none;
-}
-
-#patientLayout.doctor-mode .patient-layout-shell{
-    grid-template-columns:1fr;
-}
-
-.dashboard-sidebar{
-    padding:30px 22px;
-    background:linear-gradient(180deg,#d8f2d2,#c2e9bc);
-    border-right:1px solid rgba(46,125,50,0.12);
-    display:flex;
-    flex-direction:column;
-    position:sticky;
-    top:var(--sticky-toolbar-offset);
-    align-self:start;
-    min-height:70vh;
-}
-
-.dashboard-brand{
-    margin-bottom:24px;
-}
-
-.dashboard-kicker{
-    display:inline-block;
-    padding:6px 12px;
-    border-radius:999px;
-    background:rgba(255,255,255,0.72);
-    color:#2f6b33;
-    font-size:12px;
-    font-weight:700;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-}
-
-.dashboard-brand h4{
-    margin:14px 0 8px;
-    color:#1f4d26;
-    font-size:34px;
-}
-
-.dashboard-brand p{
-    margin:0;
-    color:#48714e;
-    font-size:14px;
-    line-height:1.6;
-}
-
-.dashboard-actions{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    margin-top:8px;
-}
-
-.sidebar-link{
-    width:100%;
-    padding:11px 16px;
-    font-size:15px;
-    text-align:left;
-    border-radius:16px;
-    background:linear-gradient(135deg,#82d78b,#aee6ae) !important;
-    color:#ffffff !important;
-    box-shadow:0 10px 22px rgba(88,160,96,0.2);
-}
-
-.sidebar-link:hover{
-    background:linear-gradient(135deg,#70cb79,#9bde9b) !important;
-}
-
-.sidebar-link.is-active{
-    background:linear-gradient(135deg,#5cbf68,#89d993) !important;
-    box-shadow:0 12px 24px rgba(64,140,73,0.28);
-}
-
-.sidebar-link.logout-link{
-    background:linear-gradient(135deg,#d32f2f,#ef5350) !important;
-    box-shadow:0 10px 22px rgba(211,47,47,0.22);
-}
-
-.sidebar-link.logout-link:hover{
-    background:linear-gradient(135deg,#c62828,#e53935) !important;
-}
-
-.patient-content{
-    padding:22px;
-    min-width:0;
-}
-
-.patient-content .page{
-    margin:0;
-}
-
-.patient-content .card{
-    margin:0;
-}
-
-.dashboard-main{
-    padding:38px 38px 34px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    background:linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,252,247,0.96));
-    min-height:calc(70vh - 44px);
-}
-
-.dashboard-main h3{
-    font-size:54px;
-    color:#263528;
-    margin-bottom:14px;
-}
-
-.dashboard-subtitle{
-    max-width:520px;
-    margin-bottom:24px;
-    color:#5f7461;
-    font-size:16px;
-    line-height:1.7;
-}
-
-.dashboard-highlights{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:16px;
-}
-
-.dashboard-tile{
-    padding:18px 20px;
-    border-radius:20px;
-    background:linear-gradient(135deg,#f8fff5,#eef9ec);
-    border:1px solid #d7ead2;
-}
-
-.dashboard-tile strong{
-    display:block;
-    margin-bottom:6px;
-    color:#2e6233;
-    font-size:16px;
-}
-
-.dashboard-tile span{
-    color:#648068;
-    font-size:14px;
-    line-height:1.6;
-}
-
-.doctor-shell{
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-}
-
-.doctor-topline{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:16px;
-    flex-wrap:wrap;
-}
-
-.doctor-identity{
-    padding:18px 20px;
-    border-radius:20px;
-    background:linear-gradient(135deg,#f6fff2,#eef8ec);
-    border:1px solid #d9ead5;
-    min-width:260px;
-}
-
-.doctor-identity p{
-    margin:8px 0 0;
-}
-
-.doctor-grid{
-    display:grid;
-    grid-template-columns:1.1fr 0.9fr;
-    gap:18px;
-}
-
-.doctor-stack{
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-}
-
-.doctor-panel{
-    padding:20px;
-    border-radius:22px;
-    background:linear-gradient(180deg,rgba(255,255,255,0.95),rgba(246,251,244,0.96));
-    border:1px solid #dbe8d8;
-    box-shadow:0 10px 24px rgba(33,80,41,0.08);
-}
-
-.doctor-panel h5{
-    margin-bottom:12px;
-    color:#25542d;
-}
-
-.doctor-panel-subtitle{
-    margin:-4px 0 12px;
-    color:#6b7f6d;
-    font-size:13px;
-}
-
-.doctor-dual{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:12px;
-}
-
-.doctor-list{
-    max-height:320px;
-    overflow:auto;
-    border-radius:16px;
-}
-
-.doctor-panel .list-group-item{
-    border:1px solid #e4ece2;
-    border-radius:14px !important;
-    margin-bottom:10px;
-    background:#fff;
-}
-
-.doctor-panel .list-group-item.active{
-    background:linear-gradient(135deg,#3f9348,#65bb6d);
-    border-color:#3f9348;
-}
-
-.doctor-panel textarea{
-    min-height:96px;
-}
-
-.patient-dashboard-shell{
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-}
-
-.patient-topline{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:16px;
-    flex-wrap:wrap;
-}
-
-.patient-identity{
-    padding:18px 20px;
-    border-radius:20px;
-    background:linear-gradient(135deg,#f6fff2,#eef8ec);
-    border:1px solid #d9ead5;
-    min-width:260px;
-}
-
-.patient-identity p{
-    margin:8px 0 0;
-}
-
-.patient-panel-grid{
-    display:grid;
-    grid-template-columns:1.05fr 0.95fr;
-    gap:18px;
-}
-
-.patient-stack{
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-}
-
-.patient-panel{
-    padding:20px;
-    border-radius:22px;
-    background:linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,251,244,0.97));
-    border:1px solid #dbe8d8;
-    box-shadow:0 10px 24px rgba(33,80,41,0.07);
-}
-
-.patient-panel h5{
-    margin-bottom:12px;
-    color:#25542d;
-}
-
-.patient-panel-subtitle{
-    margin:-4px 0 12px;
-    color:#6b7f6d;
-    font-size:13px;
-}
-
-.patient-list{
-    max-height:320px;
-    overflow:auto;
-    border-radius:16px;
-}
-
-.patient-panel .list-group-item{
-    border:1px solid #e4ece2;
-    border-radius:14px !important;
-    margin-bottom:10px;
-    background:#fff;
-}
-
-.patient-panel textarea{
-    min-height:96px;
-}
-
-@media (max-width: 768px){
-    :root{
-        --sticky-toolbar-top:10px;
-        --sticky-toolbar-offset:86px;
-    }
-
-    .top-toolbar{
-        justify-content:flex-start;
-        gap:8px;
-        padding:10px;
-        border-radius:18px;
-    }
-
-    .toolbar-logo{
-        width:clamp(132px, 42vw, 190px);
-        height:48px;
-    }
-
-    .toolbar-actions{
-        gap:8px;
-    }
-
-    #patientLayout{
-        padding:0 12px 22px;
-    }
-
-    .patient-layout-shell{
-        grid-template-columns:1fr;
-        min-height:auto;
-        overflow:visible;
-    }
-
-    .dashboard-sidebar{
-        border-right:none;
-        border-bottom:1px solid rgba(46,125,50,0.12);
-        position:sticky;
-        top:var(--sticky-toolbar-offset);
-        z-index:1500;
-        min-height:auto;
-    }
-
-    .patient-content{
-        padding:14px;
-    }
-
-    .dashboard-main{
-        padding:26px 20px;
-        min-height:auto;
-    }
-
-    .dashboard-main h3{
-        font-size:42px;
-    }
-
-    .dashboard-highlights{
-        grid-template-columns:1fr;
-    }
-
-    .doctor-grid,
-    .doctor-dual{
-        grid-template-columns:1fr;
-    }
-
-    .patient-panel-grid{
-        grid-template-columns:1fr;
-    }
-
-    .auth-screen > .card{
-        padding:18px !important;
-    }
-
-    .auth-screen .form-control,
-    .auth-screen .form-select{
-        padding:9px 14px;
-        font-size:15px;
-    }
-}
-
-h2,h3,h4,h5{
-    font-family:'Cormorant Garamond',serif;
-    letter-spacing:0.02em;
-}
-
-.question-subtitle{
-    background:linear-gradient(135deg,#f4fbef,#eef7ff);
-    border:1px solid #dce9d7;
-    border-radius:14px;
-    padding:10px 12px;
-    color:#2f5b37;
-}
-
-.symptom-box{
-    margin-top:0;
-    padding:0;
-    border-radius:16px;
-    border:0;
-    background:transparent;
-}
-
-.symptom-grid{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:10px;
-}
-
-.symptom-item{
-    display:flex;
-    align-items:center;
-    gap:9px;
-    font-size:14px;
-    line-height:1.35;
-    padding:10px 12px;
-    border-radius:12px;
-    background:#fff;
-    border:1px solid #e3eadf;
-    transition:transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.symptom-item:hover{
-    transform:translateY(-1px);
-    border-color:#c8ddc3;
-    box-shadow:0 8px 16px rgba(31,74,41,0.08);
-}
-
-.symptom-item input[type="checkbox"]{
-    transform:scale(1.2);
-    accent-color:var(--leaf);
-}
-
-@media (max-width: 768px){
-    .symptom-grid{
-        grid-template-columns:1fr;
-    }
-}
-
-.panel-label{
-    display:inline-block;
-    padding:6px 12px;
-    border-radius:999px;
-    background:#edf7ed;
-    color:var(--leaf-dark);
-    font-size:12px;
-    font-weight:700;
-    letter-spacing:0.04em;
-    text-transform:uppercase;
-}
-
-.auth-note{
-    background:linear-gradient(135deg,#f7fbef,#eef7ff);
-    border:1px solid #dbe7d3;
-    border-radius:14px;
-    padding:12px 14px;
-    font-size:14px;
-    color:#35533b;
-}
-
-.auth-screen{
-    max-width:1120px;
-    margin:0 auto;
-}
-
-.auth-screen > .card{
-    padding:28px !important;
-}
-
-.auth-screen .form-control,
-.auth-screen .form-select{
-    padding:10px 16px;
-    font-size:16px;
-}
-
-.auth-screen .my-2{
-    margin-top:0.55rem !important;
-    margin-bottom:0.55rem !important;
-}
-
-.auth-screen .btn.w-100{
-    padding-top:10px;
-    padding-bottom:10px;
-}
-
-.auth-screen .text-center.mb-3{
-    margin-bottom:0.9rem !important;
-}
-
-.suggestion-card{
-    margin-top:14px;
-    padding:16px;
-    border-radius:18px;
-    background:linear-gradient(135deg,#f9fff2,#eef8ff);
-    border:1px solid #dce9d7;
-    box-shadow:0 12px 24px rgba(31,74,41,0.08);
-}
-
-.suggestion-card strong{
-    color:var(--leaf-dark);
-}
-
-.auth-divider{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin:16px 0 12px;
-    color:#7b8d79;
-    font-size:13px;
-    text-transform:uppercase;
-    letter-spacing:0.08em;
-}
-
-.auth-divider::before,
-.auth-divider::after{
-    content:"";
-    flex:1;
-    height:1px;
-    background:#dbe7d3;
-}
-
-.google-shell{
-    border:1px solid #d8e3d2;
-    border-radius:16px;
-    padding:10px 12px;
-    background:linear-gradient(135deg,#ffffff,#f6fbf5);
-}
-
-.google-btn{
-    width:100%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:10px;
-    padding:10px 16px;
-    border:1px solid #d5ded0;
-    border-radius:999px;
-    background:#fff;
-    color:#233127;
-    font-weight:600;
-    transition:transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.google-btn:hover{
-    transform:translateY(-1px);
-    box-shadow:0 8px 18px rgba(31,74,41,0.1);
-}
-
-.google-mark{
-    width:20px;
-    height:20px;
-    border-radius:50%;
-    display:inline-grid;
-    place-items:center;
-    font-size:12px;
-    font-weight:700;
-    color:#fff;
-    background:conic-gradient(#4285f4 0 25%, #34a853 25% 50%, #fbbc05 50% 75%, #ea4335 75% 100%);
-}
-
-.google-status{
-    font-size:13px;
-    color:#5b6f5d;
-    margin-top:10px;
-}
-
-.dropdown-content{
-    max-height:0;
-    overflow:hidden;
-    transition:max-height 0.35s ease;
-}
-
-.dropdown-content.active{
-    max-height:2000px;
-}
-
-.dropdown-content.active.symptom-box{
-    margin-top:12px;
-    padding:14px;
-    border:1px solid #dce9d7;
-    background:linear-gradient(180deg,#fcfffa,#f2f8ec);
-}
-
-.therapy-detail{
-    margin-top:0;
-    padding:0;
-    border-radius:20px;
-    background:transparent;
-    border:0;
-    box-shadow:none;
-}
-
-.dropdown-content.active.therapy-detail{
-    margin-top:12px;
-    padding:18px;
-    background:linear-gradient(180deg,#fbfff7,#f2f8ec);
-    border:1px solid #dce9d7;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.75), 0 14px 28px rgba(33,79,43,0.08);
-}
-
-.therapy-detail p{
-    margin-bottom:10px;
-    line-height:1.65;
-    color:#2d4131;
-}
-
-.therapy-detail p:first-child{
-    margin-bottom:14px;
-    padding:10px 14px;
-    border-left:5px solid var(--leaf);
-    border-radius:14px;
-    background:linear-gradient(90deg,#e9f6e7,#f7fbf2);
-    color:var(--leaf-dark);
-    font-size:18px;
-}
-
-.therapy-detail p b{
-    color:#183d22;
-}
-
-.therapy-img{
-    width:auto;
-    max-width:min(100%, 560px);
-    max-height:300px;
-    object-fit:contain;
-    object-position:center;
-    border-radius:14px;
-    margin:14px auto 0;
-    border:4px solid rgba(255,255,255,0.9);
-    box-shadow:0 18px 30px rgba(33,79,43,0.14);
-    background:#f8fbf4;
-}
-
-.spinner{
-    border:4px solid #e9ecef;
-    border-top:4px solid var(--leaf);
-    border-radius:50%;
-    width:42px;
-    height:42px;
-    animation:spin 1s linear infinite;
-}
-
-@keyframes spin{
-    100%{transform:rotate(360deg);}
-}
-
-.terms-modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.55);
-    display:none;
-    justify-content:center;
-    align-items:center;
-    z-index:9998;
-}
-
-.terms-content{
-    background:#fff;
-    width:min(92vw,520px);
-    border-radius:18px;
-    padding:24px;
-    max-height:80vh;
-    overflow-y:auto;
-}
-
-.dark-mode{
-    background:#121212 !important;
-    color:#f1f1f1 !important;
-}
-
-.dark-mode .card{
-    background:#1f1f1f;
-    color:#f1f1f1;
-}
-
-.dark-mode .question-subtitle{
-    background:#1d2a22;
-    border-color:#31493a;
-    color:#dce8dd;
-}
-
-.dark-mode .symptom-box{
-    background:transparent;
-    border:0;
-}
-
-.dark-mode .dropdown-content.active.symptom-box{
-    background:linear-gradient(180deg,#182019,#202924);
-    border:1px solid #35503b;
-}
-
-.dark-mode .symptom-item{
-    background:#1f2a22;
-    border-color:#35503b;
-    color:#e5efe6;
-}
-
-.dark-mode .text-muted{
-    color:#d0d0d0 !important;
-}
-
-.dark-mode .auth-note{
-    background:#1d2a22;
-    border-color:#31493a;
-    color:#dce8dd;
-}
-
-.dark-mode .suggestion-card{
-    background:linear-gradient(135deg,#1b2520,#1d2630);
-    border-color:#35503b;
-}
-
-.dark-mode .google-shell{
-    background:#182019;
-    border-color:#35503b;
-}
-
-.dark-mode .therapy-detail{
-    background:transparent;
-    border:0;
-    box-shadow:none;
-}
-
-.dark-mode .dropdown-content.active.therapy-detail{
-    background:linear-gradient(180deg,#182019,#202924);
-    border:1px solid #35503b;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.03), 0 14px 28px rgba(0,0,0,0.28);
-}
-
-.dark-mode .therapy-detail p{
-    color:#e4efe4;
-}
-
-.dark-mode .therapy-detail p:first-child{
-    background:linear-gradient(90deg,#203226,#182019);
-    color:#b8f2be;
-}
-
-.dark-mode .therapy-detail p b{
-    color:#d6f7d8;
-}
-
-.dark-mode .google-status{
-    color:#dce8dd;
-}
-
-.dark-mode .google-btn{
-    background:#202a22;
-    border-color:#35503b;
-    color:#f1f1f1;
-}
-
-#databaseInfo{
-    display:none;
-}
-
-.language-select{
-    width:auto;
-    min-width:150px;
-    display:inline-block;
-    vertical-align:middle;
-    border-radius:10px;
-    border:1px solid #cfe2cf;
-    box-shadow:none;
-}
-
-.language-label{
-    margin-left:8px;
-    margin-right:2px;
-    font-size:14px;
-    font-weight:600;
-    color:#2f5b37;
-}
-
-.result-chart-wrap{
-    width:min(320px, 100%);
-    margin:16px auto 0;
-}
-
-.result-chart-wrap canvas{
-    width:100% !important;
-    height:320px !important;
-}
-
-/* Responsive polish */
-*,
-*::before,
-*::after{
-    box-sizing:border-box;
-}
-
-img,
-canvas,
-video,
-svg{
-    max-width:100%;
-}
-
-body.p-4{
-    padding:clamp(10px, 2.5vw, 24px) !important;
-}
-
-.container{
-    width:min(100%, 1180px);
-    max-width:1180px;
-    padding-left:clamp(8px, 2vw, 16px);
-    padding-right:clamp(8px, 2vw, 16px);
-}
-
-.hero-img{
-    width:clamp(92px, 14vw, 180px);
-    max-width:42vw;
-}
-
-.site-hero h2{
-    font-size:clamp(1.55rem, 4vw, 2.3rem);
-    line-height:1.15;
-}
-
-.card,
-.doctor-panel,
-.patient-panel,
-.suggestion-card,
-.terms-content{
-    overflow-wrap:anywhere;
-}
-
-.form-control,
-.form-select,
-.btn{
-    min-width:0;
-}
-
-.btn{
-    white-space:normal;
-}
-
-.list-group-item{
-    overflow-wrap:anywhere;
-}
-
-.therapy-img{
-    display:block;
-    height:auto;
-    object-fit:contain;
-    object-position:center;
-    background:#f8fbf4;
-}
-
-.doctor-list,
-.patient-list{
-    overscroll-behavior:contain;
-}
-
-@media (max-width: 992px){
-    .doctor-grid,
-    .patient-panel-grid{
-        grid-template-columns:1fr;
-    }
-
-    .doctor-topline,
-    .patient-topline{
-        align-items:stretch;
-    }
-
-    .doctor-identity,
-    .patient-identity{
-        width:100%;
-        min-width:0;
-    }
-
-    .dashboard-main h3{
-        font-size:clamp(2.25rem, 7vw, 3.4rem);
-    }
-}
-
-@media (max-width: 768px){
-    .site-hero{
-        margin-bottom:14px !important;
-    }
-
-    .card{
-        border-radius:18px;
-    }
-
-    .top-toolbar-wrap{
-        top:8px;
-        margin-bottom:14px;
-    }
-
-    .top-toolbar{
-        display:flex;
-        align-items:center;
-    }
-
-    .toolbar-brand{
-        flex:1 1 100%;
-    }
-
-    .toolbar-actions{
-        display:grid;
-        grid-template-columns:repeat(4, minmax(0, 1fr));
-        width:100%;
-    }
-
-    .toolbar-actions .btn{
-        width:100%;
-        min-height:38px;
-        padding-left:8px;
-        padding-right:8px;
-    }
-
-    .language-label{
-        grid-column:1 / 2;
-        margin-left:0;
-        text-align:left;
-    }
-
-    .language-select{
-        grid-column:2 / 5;
-        width:100%;
-        min-width:0;
-    }
-
-    .dashboard-sidebar{
-        position:static;
-        padding:20px 16px;
-    }
-
-    .dashboard-brand{
-        margin-bottom:14px;
-    }
-
-    .dashboard-brand h4{
-        font-size:clamp(1.7rem, 8vw, 2.25rem);
-    }
-
-    .dashboard-actions{
-        display:grid;
-        grid-template-columns:repeat(2, minmax(0, 1fr));
-        gap:10px;
-    }
-
-    .sidebar-link{
-        min-height:44px;
-        padding:10px 12px;
-        text-align:center;
-    }
-
-    .doctor-panel,
-    .patient-panel{
-        padding:16px;
-        border-radius:18px;
-    }
-
-    .therapy-img{
-        max-width:100%;
-        max-height:240px;
-        border-width:3px;
-    }
-}
-
-@media (max-width: 576px){
-    body.p-4{
-        padding:8px !important;
-    }
-
-    .container{
-        padding-left:0;
-        padding-right:0;
-    }
-
-    .site-hero h2{
-        margin-top:10px !important;
-    }
-
-    .top-toolbar{
-        gap:8px;
-        border-radius:16px;
-    }
-
-    .toolbar-logo{
-        width:min(100%, 170px);
-        height:44px;
-    }
-
-    .toolbar-actions{
-        grid-template-columns:repeat(2, minmax(0, 1fr));
-        gap:8px;
-    }
-
-    .language-label{
-        grid-column:1 / 2;
-        align-self:center;
-    }
-
-    .language-select{
-        grid-column:2 / 3;
-    }
-
-    .auth-screen > .card,
-    .page > .card{
-        padding:16px !important;
-    }
-
-    .patient-content{
-        padding:10px;
-    }
-
-    .dashboard-main{
-        padding:22px 16px;
-    }
-
-    .dashboard-highlights,
-    .dashboard-actions,
-    .doctor-dual,
-    .symptom-grid{
-        grid-template-columns:1fr;
-    }
-
-    .doctor-panel .btn-sm{
-        width:100%;
-        margin:4px 0 !important;
-    }
-
-    .ai-popup{
-        left:8px;
-        right:8px;
-        top:10px;
-        transform:translateY(-130%);
-    }
-
-    .ai-popup.show{
-        right:8px;
-        transform:translateY(0);
-    }
-
-    .terms-content{
-        width:calc(100vw - 20px);
-        padding:18px;
-    }
-
-    .result-chart-wrap canvas{
-        height:260px !important;
-    }
-
-    .therapy-detail p:first-child{
-        font-size:16px;
-    }
-}
-</style>
 </head>
 <body class="p-4">
 
@@ -1276,7 +50,7 @@ body.p-4{
 </div>
 </div>
 
-<div id="loader" style="display:none;" class="mb-3">
+<div id="loader" class="mb-3">
     <div class="spinner"></div>
 </div>
 
@@ -1289,7 +63,7 @@ body.p-4{
 </div>
 
 <div class="container">
-    <div class="page page-default auth-screen" id="loginPage" style="display:block;">
+    <div class="page page-default auth-screen" id="loginPage">
         <div class="card p-4 shadow">
 
             <div id="termsModal" class="terms-modal">
@@ -1316,21 +90,21 @@ body.p-4{
             </div>
 
             <div id="loginForm">
-                <input class="form-control my-2" id="loginName" placeholder="Enter Name">
-                <input class="form-control my-2" id="loginEmail" type="email" placeholder="Enter Email">
+                <input class="form-control my-2" id="loginName" aria-label="Patient name" placeholder="Enter Name">
+                <input class="form-control my-2" id="loginEmail" type="email" aria-label="Patient email" placeholder="Enter Email">
                 <button class="btn btn-outline-success w-100 my-2" id="patientOtpSendBtn" onclick="sendPatientOtp()">Send OTP</button>
-                <input class="form-control my-2" id="loginOtp" placeholder="Enter Email OTP">
+                <input class="form-control my-2" id="loginOtp" aria-label="Patient email OTP" placeholder="Enter Email OTP">
                 <button class="btn btn-outline-dark w-100 my-2" id="patientOtpLoginBtn" onclick="loginWithPatientOtp()">Login</button>
 
             </div>
 
-            <div id="registerForm" style="display:none;">
-                <input class="form-control my-2" id="nameInput" placeholder="Name">
-                <input class="form-control my-2" id="emailInput" type="email" placeholder="Enter Email">
-                <input class="form-control my-2" id="ageInput" placeholder="Age">
+            <div id="registerForm">
+                <input class="form-control my-2" id="nameInput" aria-label="Patient full name" placeholder="Name">
+                <input class="form-control my-2" id="emailInput" type="email" aria-label="Patient email" placeholder="Enter Email">
+                <input class="form-control my-2" id="ageInput" aria-label="Patient age" placeholder="Age">
                 <div class="form-check my-2">
                     <input class="form-check-input" type="checkbox" id="termsCheck">
-                    <label class="form-check-label">
+                    <label class="form-check-label" for="termsCheck">
                         I agree to the
                         <a href="#" onclick="openTerms(); return false;">Terms & Conditions</a>
                     </label>
@@ -1341,7 +115,7 @@ body.p-4{
         </div>
     </div>
 
-    <div class="page auth-screen" id="doctorLoginPage" style="display:none;">
+    <div class="page auth-screen" id="doctorLoginPage">
         <div class="card p-4 shadow">
             <h4 class="text-center text-dark">Doctor Admin </h4>
             <div class="text-center mb-3">
@@ -1353,23 +127,23 @@ body.p-4{
                 <div class="auth-note mb-3">
                     <b id="doctorEmailHint">No doctor registered yet</b>.
                 </div>
-                <input class="form-control my-2" id="doctorEmail" type="email" placeholder="Doctor Email">
+                <input class="form-control my-2" id="doctorEmail" type="email" aria-label="Doctor email" placeholder="Doctor Email">
                 <div class="auth-note text-start mt-3 mb-2">
                     OTP login is also available for registered doctor emails.
                 </div>
-                <input class="form-control my-2" id="doctorOtp" placeholder="Enter Email OTP">
+                <input class="form-control my-2" id="doctorOtp" aria-label="Doctor email OTP" placeholder="Enter Email OTP">
                 <button class="btn btn-outline-success w-100 my-2" id="doctorOtpSendBtn" onclick="sendDoctorOtp()">Send OTP</button>
                 <button class="btn btn-outline-dark w-100 my-2" id="doctorOtpLoginBtn" onclick="doctorLoginWithOtp()">Login</button>
             </div>
 
-            <div id="doctorRegisterForm" style="display:none;">
+            <div id="doctorRegisterForm">
                 <div class="auth-note mb-3">
                     Register doctor profile to enable OTP login with your email.
                 </div>
-                <input class="form-control my-2" id="doctorNameInput" placeholder="Doctor Name">
-                <input class="form-control my-2" id="doctorEmailInput" type="email" placeholder="Doctor Email">
-                <input class="form-control my-2" id="doctorHospitalInput" placeholder="Hospital Name">
-                <select class="form-control my-2" id="doctorSpecialtyInput">
+                <input class="form-control my-2" id="doctorNameInput" aria-label="Doctor name" placeholder="Doctor Name">
+                <input class="form-control my-2" id="doctorEmailInput" type="email" aria-label="Doctor registration email" placeholder="Doctor Email">
+                <input class="form-control my-2" id="doctorHospitalInput" aria-label="Doctor hospital name" placeholder="Hospital Name">
+                <select class="form-control my-2" id="doctorSpecialtyInput" aria-label="Doctor specialty">
                     <option value="">Select Doctor Specialty</option>
                     <option value="Respiratory & Kapha Care">Respiratory & Kapha Care</option>
                     <option value="Digestive & Pitta Care">Digestive & Pitta Care</option>
@@ -1384,7 +158,7 @@ body.p-4{
         </div>
     </div>
 
-    <div id="patientLayout" style="display:none;">
+    <div id="patientLayout">
         <div class="patient-layout-shell">
             <aside class="dashboard-sidebar">
                 <div class="dashboard-brand">
@@ -1465,9 +239,9 @@ body.p-4{
                                     <div class="patient-panel">
                                         <h5>Consultation Chat</h5>
                                         <p class="patient-panel-subtitle">Send follow-up questions to your doctor for a selected appointment.</p>
-                                        <select class="form-control my-2" id="patientChatAppointmentSelect" onchange="loadPatientChat()"></select>
+                                        <select class="form-control my-2" id="patientChatAppointmentSelect" aria-label="Patient chat appointment selection" onchange="loadPatientChat()"></select>
                                         <ul id="patientChatList" class="list-group patient-list mb-2"></ul>
-                                        <textarea class="form-control my-2" id="patientChatMessage" placeholder="Type your message"></textarea>
+                                        <textarea class="form-control my-2" id="patientChatMessage" aria-label="Patient chat message" placeholder="Type your message"></textarea>
                                         <button class="btn btn-outline-success w-100" onclick="sendPatientChatMessage()">Send Message</button>
                                     </div>
                                 </div>
@@ -1535,7 +309,7 @@ body.p-4{
                 <h5 class="mt-3 text-primary">Recommended Therapy</h5>
                 <p id="therapyText"></p>
                 <p id="therapyDescription"></p>
-                <img id="therapyImage" class="therapy-img" alt="Therapy recommendation">
+                <img id="therapyImage" src="images/E-Panchakarma.jpg" class="therapy-img" alt="Therapy recommendation">
             </div>
             <p><b>Diet & Lifestyle:</b> <span id="dietText"></span></p>
             <p><b>Progress:</b> <span id="progressText"></span></p>
@@ -1589,9 +363,9 @@ body.p-4{
                         <div class="doctor-panel">
                             <h5>Doctor Profile</h5>
                             <p class="doctor-panel-subtitle">Keep your specialization, experience, and available timings updated for patients.</p>
-                            <input class="form-control my-2" id="doctorProfileName" placeholder="Doctor Name">
-                            <input class="form-control my-2" id="doctorProfileHospital" placeholder="Hospital Name">
-                            <select class="form-control my-2" id="doctorProfileSpecialty">
+                            <input class="form-control my-2" id="doctorProfileName" aria-label="Doctor profile name" placeholder="Doctor Name">
+                            <input class="form-control my-2" id="doctorProfileHospital" aria-label="Doctor profile hospital" placeholder="Hospital Name">
+                            <select class="form-control my-2" id="doctorProfileSpecialty" aria-label="Doctor profile specialty">
                                 <option value="">Select Doctor Specialty</option>
                                 <option value="Respiratory & Kapha Care">Respiratory & Kapha Care</option>
                                 <option value="Digestive & Pitta Care">Digestive & Pitta Care</option>
@@ -1601,8 +375,8 @@ body.p-4{
                                 <option value="General Panchakarma">General Panchakarma</option>
                             </select>
                             <div class="doctor-dual">
-                                <input class="form-control my-2" id="doctorProfileExperience" type="number" min="0" placeholder="Experience in years">
-                                <input class="form-control my-2" id="doctorProfileTimings" placeholder="Available timings">
+                                <input class="form-control my-2" id="doctorProfileExperience" type="number" min="0" aria-label="Doctor experience in years" placeholder="Experience in years">
+                                <input class="form-control my-2" id="doctorProfileTimings" aria-label="Doctor available timings" placeholder="Available timings">
                             </div>
                             <button class="btn btn-outline-success w-100 my-2" onclick="saveDoctorProfile()">Save Doctor Profile</button>
                         </div>
@@ -1615,7 +389,7 @@ body.p-4{
                         <div class="doctor-panel">
                             <h5>Patient Management</h5>
                             <p class="doctor-panel-subtitle">Search your patients by name, email, issue, or dosha pattern.</p>
-                            <input class="form-control my-2" id="doctorPatientSearch" placeholder="Search patient by name, email, issue, or dosha">
+                            <input class="form-control my-2" id="doctorPatientSearch" aria-label="Search patients by name, email, issue, or dosha" placeholder="Search patient by name, email, issue, or dosha">
                             <button class="btn btn-outline-success w-100 my-2" onclick="loadDoctorPatients()">Search Patients</button>
                             <ul id="doctorPatientList" class="list-group doctor-list mt-2"></ul>
                         </div>
@@ -1638,12 +412,12 @@ body.p-4{
                     <div class="doctor-panel">
                         <h5>E-Prescription</h5>
                         <p class="doctor-panel-subtitle">Create a digital prescription, use medicine suggestions, and export it as PDF.</p>
-                        <select class="form-control my-2" id="prescriptionAppointmentSelect"></select>
-                        <input class="form-control my-2" id="medicineSearchInput" placeholder="Search medicine suggestions">
+                        <select class="form-control my-2" id="prescriptionAppointmentSelect" aria-label="Prescription appointment selection"></select>
+                        <input class="form-control my-2" id="medicineSearchInput" aria-label="Medicine search input" placeholder="Search medicine suggestions">
                         <button class="btn btn-outline-success w-100 my-2" onclick="loadMedicineSuggestions()">Load Medicine Suggestions</button>
                         <ul id="medicineSuggestionList" class="list-group doctor-list mt-2"></ul>
-                        <textarea class="form-control my-2" id="prescriptionMedicines" placeholder="Medicines, dosage, and instructions"></textarea>
-                        <textarea class="form-control my-2" id="prescriptionNotes" placeholder="Prescription notes"></textarea>
+                        <textarea class="form-control my-2" id="prescriptionMedicines" aria-label="Prescription medicines and dosage" placeholder="Medicines, dosage, and instructions"></textarea>
+                        <textarea class="form-control my-2" id="prescriptionNotes" aria-label="Prescription notes" placeholder="Prescription notes"></textarea>
                         <div class="doctor-dual">
                             <button class="btn btn-success w-100 my-2" onclick="createDoctorPrescription()">Create Prescription</button>
                             <button class="btn btn-dark w-100 my-2" onclick="downloadDoctorPrescriptionPdf()">Download Prescription PDF</button>
@@ -1654,9 +428,9 @@ body.p-4{
                     <div class="doctor-panel">
                         <h5>Doctor ↔ Patient Chat</h5>
                         <p class="doctor-panel-subtitle">Share consultation guidance and follow-up messages linked to each appointment.</p>
-                        <select class="form-control my-2" id="doctorChatAppointmentSelect" onchange="loadDoctorChat()"></select>
+                        <select class="form-control my-2" id="doctorChatAppointmentSelect" aria-label="Doctor chat appointment selection" onchange="loadDoctorChat()"></select>
                         <ul id="doctorChatList" class="list-group doctor-list mt-2"></ul>
-                        <textarea class="form-control my-2" id="doctorChatMessage" placeholder="Type your message"></textarea>
+                        <textarea class="form-control my-2" id="doctorChatMessage" aria-label="Doctor chat message" placeholder="Type your message"></textarea>
                         <button class="btn btn-outline-success w-100 my-2" onclick="sendDoctorChatMessage()">Send Message</button>
                     </div>
                 </div>
@@ -1669,7 +443,7 @@ body.p-4{
                 <div class="page" id="appointmentPage">
         <div class="card p-4 shadow">
             <h4 class="text-success text-center">Book Appointment</h4>
-            <select class="form-control my-2" id="patientIssue" onchange="updateDoctorRecommendation()">
+            <select class="form-control my-2" id="patientIssue" aria-label="Patient health issue selection" onchange="updateDoctorRecommendation()">
                 <option value="">Select Health Issue</option>
                 <option value="respiratory">Respiratory / Kapha issue</option>
                 <option value="digestive">Digestive / acidity issue</option>
@@ -1683,14 +457,14 @@ body.p-4{
                 <p class="mb-2"><strong>System Suggested Doctor:</strong> <span id="suggestedDoctorName">No doctor suggested yet</span></p>
                 <p class="mb-0"><strong>Why:</strong> <span id="suggestedDoctorReason">Choose your health issue or complete analysis to get a recommendation.</span></p>
             </div>
-            <select class="form-control my-2" id="doctorSelect"></select>
+            <select class="form-control my-2" id="doctorSelect" aria-label="Doctor selection"></select>
             <small class="text-muted d-block mb-2" id="manualDoctorHint">Choose doctor manually, or keep the system suggested doctor selected.</small>
             <div class="suggestion-card">
                 <p class="mb-2"><strong>Top Matching Doctors</strong></p>
                 <ul id="doctorMatchList" class="mb-0 ps-3"></ul>
             </div>
-            <input type="date" class="form-control my-2" id="appointDate">
-            <input type="time" class="form-control my-2" id="appointTime">
+            <input type="date" class="form-control my-2" id="appointDate" aria-label="Appointment date">
+            <input type="time" class="form-control my-2" id="appointTime" aria-label="Appointment time">
             <button class="btn btn-success w-100" onclick="bookAppointment()">Confirm Appointment</button>
             <p class="mt-3"><b>Status:</b> <span id="appointStatus">No appointment booked</span></p>
         </div>
@@ -1733,7 +507,7 @@ body.p-4{
                 <p>Vamana should always be done under expert supervision and should never be tried at home. It should be avoided during fever, weakness, and pregnancy.</p>
                 <p><b>Benefits of Vamana Therapy</b></p>
                 <p>It helps clear the respiratory system, improve skin health, enhance digestion, remove deep toxins, and balance Kapha dosha.</p>
-                <img id="vamanaStaticImg" src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
+                <img src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
             </div>
 
             <button class="btn btn-danger w-100 mt-2" onclick="toggleBox('virechanaBox')">Virechana (Purgation Therapy)</button>
@@ -1756,7 +530,7 @@ body.p-4{
                 <p>Virechana must always be done under expert supervision. It should be avoided during fever, diarrhea, and pregnancy, and it should never be self-administered.</p>
                 <p><b>Benefits of Virechana Therapy</b></p>
                 <p>It helps cleanse the digestive system, improve skin health, balance Pitta dosha, detoxify the liver, and enhance metabolism.</p>
-                <img id="virechanaStaticImg" src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
+                <img src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
             </div>
 
             <button class="btn btn-success w-100 mt-2" onclick="toggleBox('bastiBox')">Basti (Medicated Enema)</button>
@@ -1782,7 +556,7 @@ body.p-4{
                 <p>Basti must be done by an expert. It should be avoided during diarrhea, fever, and bleeding disorders, and heavy meals should be avoided before and after treatment.</p>
                 <p><b>Benefits of Basti Therapy</b></p>
                 <p>It helps relieve constipation, reduce joint and back pain, improve digestion, strengthen the nervous system, and detoxify the colon.</p>
-                <img id="bastiStaticImg" src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
+                <img src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
             </div>
 
             <button class="btn btn-warning w-100 mt-2" onclick="toggleBox('nasyaBox')">Nasya (Nasal Therapy)</button>
@@ -1805,7 +579,7 @@ body.p-4{
                 <p>Nasya should be done by a trained practitioner. It should be avoided immediately after eating, during fever, and during severe cold congestion, and it should not be overused.</p>
                 <p><b>Benefits of Nasya Therapy</b></p>
                 <p>It helps clear sinus and nasal blockage, improve memory, strengthen hair roots, relieve headache, and enhance voice and vision.</p>
-                <img id="nasyaStaticImg" src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
+                <img src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
             </div>
 
             <button class="btn btn-dark w-100 mt-2" onclick="toggleBox('raktaBox')">Raktamokshana (Blood Detox)</button>
@@ -1832,7 +606,7 @@ body.p-4{
                 <p>Rakta Mokshana must be done only by an expert. It should be avoided in anemia, pregnancy, and weak patients, and strict hygiene and sterilization must be maintained.</p>
                 <p><b>Benefits of Rakta Mokshana</b></p>
                 <p>It helps detoxify the blood, improve skin glow, reduce inflammation, support chronic skin problem management, and balance Pitta dosha.</p>
-                <img id="raktamokshanaStaticImg" src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
+                <img src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
             </div>
         </div>
     </div>
@@ -2716,8 +1490,11 @@ showPage("loginPage", false);
     if(saved) { return saved; }
     if(window.location.protocol === "file:") { return "http://127.0.0.1:5000"; }
     const host = window.location.hostname || "127.0.0.1";
-    if (host === "localhost" || host === "127.0.0.1") { return "http://127.0.0.1:5000"; }
-    return window.location.protocol + "//" + host;
+    if (host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0") { return "http://127.0.0.1:5000"; }
+    if (host.startsWith("172.") || host.startsWith("10.") || host.startsWith("192.168.")) {
+        return "http://127.0.0.1:5000";
+    }
+    return "http://127.0.0.1:5000";
 })();
 
     let backendWarningShown = false;
@@ -3099,6 +1876,15 @@ showPage("loginPage", false);
         localStorage.removeItem("email");
         localStorage.removeItem("age");
         persist();
+
+        // Clear login form inputs so values don't persist after logout
+        const loginNameEl = document.getElementById("loginName");
+        const loginEmailEl = document.getElementById("loginEmail");
+        const loginOtpEl = document.getElementById("loginOtp");
+        if(loginNameEl){ loginNameEl.value = ""; }
+        if(loginEmailEl){ loginEmailEl.value = ""; }
+        if(loginOtpEl){ loginOtpEl.value = ""; }
+
         showPage("loginPage");
     };
 
@@ -3116,6 +1902,13 @@ showPage("loginPage", false);
         localStorage.removeItem("doctorEmail");
         localStorage.removeItem("doctorSpecialty");
         persist();
+
+        // Clear doctor login inputs
+        const doctorEmailEl = document.getElementById("doctorEmail");
+        const doctorOtpEl = document.getElementById("doctorOtp");
+        if(doctorEmailEl){ doctorEmailEl.value = ""; }
+        if(doctorOtpEl){ doctorOtpEl.value = ""; }
+
         showPage("loginPage");
     };
 
@@ -3950,7 +2743,7 @@ showPage("loginPage", false);
                 <p>वमन केवल विशेषज्ञ की देखरेख में ही करना चाहिए और घर पर कभी नहीं करना चाहिए। बुखार, कमजोरी और गर्भावस्था में इससे बचना चाहिए।</p>
                 <p><b>वमन थेरेपी के लाभ</b></p>
                 <p>यह श्वसन तंत्र को साफ करने, त्वचा स्वास्थ्य सुधारने, पाचन बढ़ाने, गहरे विषैले तत्व हटाने और कफ दोष संतुलित करने में मदद करती है।</p>
-                <img id="vamanaStaticImg" src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
+                <img src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
             `,
             virechana: `
                 <p><b>विरेचन थेरेपी क्या है?</b></p>
@@ -3971,7 +2764,7 @@ showPage("loginPage", false);
                 <p>विरेचन हमेशा विशेषज्ञ की देखरेख में ही करना चाहिए। बुखार, दस्त और गर्भावस्था में इससे बचना चाहिए, तथा इसे स्वयं नहीं करना चाहिए।</p>
                 <p><b>विरेचन थेरेपी के लाभ</b></p>
                 <p>यह पाचन तंत्र की शुद्धि, त्वचा स्वास्थ्य सुधार, पित्त दोष संतुलन, यकृत डिटॉक्स और मेटाबॉलिज्म बेहतर करने में मदद करती है।</p>
-                <img id="virechanaStaticImg" src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
+                <img src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
             `,
             basti: `
                 <p><b>बस्ति थेरेपी क्या है?</b></p>
@@ -3995,7 +2788,7 @@ showPage("loginPage", false);
                 <p>बस्ति विशेषज्ञ द्वारा ही करनी चाहिए। दस्त, बुखार और रक्तस्राव विकारों में इससे बचना चाहिए, तथा उपचार से पहले और बाद में भारी भोजन नहीं लेना चाहिए।</p>
                 <p><b>बस्ति थेरेपी के लाभ</b></p>
                 <p>यह कब्ज दूर करने, जोड़ों और कमर दर्द कम करने, पाचन सुधारने, तंत्रिका तंत्र को मजबूत करने और कोलन की शुद्धि में मदद करती है।</p>
-                <img id="bastiStaticImg" src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
+                <img src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
             `,
             nasya: `
                 <p><b>नस्य थेरेपी क्या है?</b></p>
@@ -4016,7 +2809,7 @@ showPage("loginPage", false);
                 <p>नस्य प्रशिक्षित चिकित्सक द्वारा ही की जानी चाहिए। भोजन के तुरंत बाद, बुखार में, अत्यधिक नाक बंद होने पर या बार-बार प्रयोग करने से बचना चाहिए।</p>
                 <p><b>नस्य थेरेपी के लाभ</b></p>
                 <p>यह साइनस और नाक अवरोध कम करने, स्मरण शक्ति सुधारने, बालों की जड़ों को मजबूत करने, सिरदर्द में राहत देने और वाणी व दृष्टि को बेहतर बनाने में सहायक है।</p>
-                <img id="nasyaStaticImg" src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
+                <img src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
             `,
             rakta: `
                 <p><b>रक्तमोक्षण थेरेपी क्या है?</b></p>
@@ -4041,7 +2834,7 @@ showPage("loginPage", false);
                 <p>रक्तमोक्षण केवल विशेषज्ञ द्वारा ही किया जाना चाहिए। एनीमिया, गर्भावस्था और अत्यधिक कमजोरी में इससे बचना चाहिए, तथा स्वच्छता और स्टरलाइजेशन का विशेष ध्यान रखना चाहिए।</p>
                 <p><b>रक्तमोक्षण के लाभ</b></p>
                 <p>यह रक्त की शुद्धि, त्वचा की चमक सुधारने, सूजन कम करने, पुराने त्वचा विकारों के प्रबंधन में सहायता करने और पित्त दोष संतुलित करने में मदद करता है।</p>
-                <img id="raktamokshanaStaticImg" src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
+                <img src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
             `
         },
         gu: {
@@ -4064,7 +2857,7 @@ showPage("loginPage", false);
                 <p>વમન માત્ર નિષ્ણાતની દેખરેખ હેઠળ જ કરવું જોઈએ અને ઘરમાં ક્યારેય કરવું નહીં. તાવ, નબળાઈ અને ગર્ભાવસ્થા દરમિયાન આથી બચવું જોઈએ.</p>
                 <p><b>વમન થેરાપીના લાભો</b></p>
                 <p>આ શ્વસનતંત્રને સ્વચ્છ બનાવવા, ત્વચાનું આરોગ્ય સુધારવા, પાચન શક્તિ વધારવા, ઊંડા ઝેરી તત્વોને દૂર કરવા અને કફ દોષ સંતુલિત કરવામાં મદદ કરે છે.</p>
-                <img id="vamanaStaticImg" src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
+                <img src="images/Vamana_therapy.jpg" class="therapy-img" alt="Vamana therapy">
             `,
             virechana: `
                 <p><b>વિરેચન થેરાપી શું છે?</b></p>
@@ -4085,7 +2878,7 @@ showPage("loginPage", false);
                 <p>વિરેચન હંમેશા નિષ્ણાતની દેખરેખ હેઠળ જ કરવું જોઈએ. તાવ, ડાયરીયા અને ગર્ભાવસ્થા દરમિયાન આથી બચવું જોઈએ અને તેને સ્વયં કરવું નહીં.</p>
                 <p><b>વિરેચન થેરાપીના લાભો</b></p>
                 <p>આ પાચનતંત્ર શુદ્ધ કરવા, ત્વચાનું આરોગ્ય સુધારવા, પિત્ત દોષ સંતુલિત કરવા, યકૃત ડિટૉક્સમાં મદદ કરવા અને મેટાબોલિઝમ સુધારવામાં સહાય કરે છે.</p>
-                <img id="virechanaStaticImg" src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
+                <img src="images/Virechana_therapy.jpg" class="therapy-img" alt="Virechana therapy">
             `,
             basti: `
                 <p><b>બસ્તી થેરાપી શું છે?</b></p>
@@ -4109,7 +2902,7 @@ showPage("loginPage", false);
                 <p>બસ્તી નિષ્ણાત દ્વારા જ કરવી જોઈએ. ડાયરીયા, તાવ અને બ્લીડિંગ ડિસઓર્ડરમાં આથી બચવું જોઈએ અને સારવાર પહેલા તથા પછી ભારે ભોજન ટાળવું જોઈએ.</p>
                 <p><b>બસ્તી થેરાપીના લાભો</b></p>
                 <p>આ કબજિયાતમાં રાહત, સાંધા અને કમરના દુખાવામાં ઘટાડો, પાચન સુધારવું, નર્વસ સિસ્ટમને મજબૂત બનાવવું અને કોલનનું શુદ્ધિકરણ કરવામાં મદદ કરે છે.</p>
-                <img id="bastiStaticImg" src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
+                <img src="images/Basti_therapy.jpg" class="therapy-img" alt="Basti therapy">
             `,
             nasya: `
                 <p><b>નસ્ય થેરાપી શું છે?</b></p>
@@ -4130,7 +2923,7 @@ showPage("loginPage", false);
                 <p>નસ્ય પ્રશિક્ષિત નિષ્ણાત દ્વારા જ કરવી જોઈએ. ભોજન પછી તરત, તાવ દરમિયાન, ભારે નાક બંધ હોય ત્યારે અથવા વારંવાર ઉપયોગ કરવાથી બચવું જોઈએ.</p>
                 <p><b>નસ્ય થેરાપીના લાભો</b></p>
                 <p>આ સાઇનસ અને નાકના અવરોધમાં રાહત, સ્મરણશક્તિમાં સુધારો, વાળની જડોને મજબૂત બનાવવામાં, માથાના દુખાવામાં રાહત અને વાણી તથા દૃષ્ટિમાં સુધારો કરવામાં મદદ કરે છે.</p>
-                <img id="nasyaStaticImg" src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
+                <img src="images/Nasya_therapy.jpg" class="therapy-img" alt="Nasya therapy">
             `,
             rakta: `
                 <p><b>રક્તમોક્ષણ થેરાપી શું છે?</b></p>
@@ -4155,7 +2948,7 @@ showPage("loginPage", false);
                 <p>રક્તમોક્ષણ માત્ર નિષ્ણાત દ્વારા જ કરવું જોઈએ. એનિમિયા, ગર્ભાવસ્થા અને અત્યંત નબળાઈમાં આથી બચવું જોઈએ અને સફાઈ તથા સ્ટેરિલાઇઝેશનનું ખાસ ધ્યાન રાખવું જોઈએ.</p>
                 <p><b>રક્તમોક્ષણના લાભો</b></p>
                 <p>આ રક્ત શુદ્ધ કરવામાં, ત્વચાનો તેજ વધારવામાં, સોજો ઘટાડવામાં, જૂની ત્વચા સમસ્યાના સંચાલનમાં મદદ કરવા અને પિત્ત દોષ સંતુલિત કરવા સહાયક છે.</p>
-                <img id="raktamokshanaStaticImg" src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
+                <img src="images/Raktamokshana_therapy.jpg" class="therapy-img" alt="Raktamokshana therapy">
             `
         }
     };
@@ -4303,7 +3096,11 @@ showPage("loginPage", false);
         const patientName = patientNameNode ? (patientNameNode.textContent || "").trim() : "";
         if(dashboardTitle){
             const prefix = tr("dashboard.welcome",{name:""}).trim();
-            dashboardTitle.innerHTML = prefix + ' <span id="patientName">' + patientName + "</span>";
+            dashboardTitle.textContent = prefix + " ";
+            const nameSpan = document.createElement("span");
+            nameSpan.id = "patientName";
+            nameSpan.textContent = patientName;
+            dashboardTitle.appendChild(nameSpan);
         }
         setText(".dashboard-subtitle","dashboard.subtitle");
         const tiles = document.querySelectorAll(".dashboard-tile");

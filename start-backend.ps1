@@ -3,7 +3,7 @@ param(
     [string]$MySqlUser = "root",
     [string]$MySqlPassword = "",
     [string]$MySqlDatabase = "e_panchakarma",
-    [string]$MySqlPort = "3307",
+    [string]$MySqlPort = "3306",
     [string]$GoogleClientId = "",
     [string]$SmtpHost = "",
     [string]$SmtpPort = "",
@@ -20,8 +20,30 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $runDir = Join-Path $projectRoot ".run"
 $mysqlDataDir = Join-Path $projectRoot "mysql-data"
-$mysqlExe = "C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqld.exe"
-$mysqlCli = "C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe"
+$mysqlExe = $null
+$mysqlCandidates = @(
+    "C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqld.exe",
+    "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqld.exe",
+    "C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqld.exe",
+    "C:\Program Files\MySQL\MySQL Server 8.2\bin\mysqld.exe",
+    "C:\Program Files\MySQL\MySQL Server 8.3\bin\mysqld.exe"
+)
+foreach ($candidate in $mysqlCandidates) {
+    if (Test-Path $candidate) {
+        $mysqlExe = $candidate
+        break
+    }
+}
+if (-not $mysqlExe) {
+    $mysqlExe = (Get-Command mysqld.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -First 1)
+}
+if (-not $mysqlExe) {
+    Write-Host "MySQL executable not found at the expected locations." -ForegroundColor Red
+    Write-Host "Please install MySQL Server 8.x or update the path in start-backend.ps1" -ForegroundColor Red
+    exit 1
+}
+$mysqlBinDir = Split-Path -Parent $mysqlExe
+$mysqlCli = Join-Path $mysqlBinDir "mysql.exe"
 $envFile = Join-Path $projectRoot ".env.local"
 
 function Get-LocalEnvValue {
@@ -77,7 +99,7 @@ $MySqlHost = Resolve-Setting "MySqlHost" $MySqlHost "MYSQL_HOST" "127.0.0.1"
 $MySqlUser = Resolve-Setting "MySqlUser" $MySqlUser "MYSQL_USER" "root"
 $MySqlPassword = Resolve-Setting "MySqlPassword" $MySqlPassword "MYSQL_PASSWORD" ""
 $MySqlDatabase = Resolve-Setting "MySqlDatabase" $MySqlDatabase "MYSQL_DATABASE" "e_panchakarma"
-$MySqlPort = Resolve-Setting "MySqlPort" $MySqlPort "MYSQL_PORT" "3307"
+$MySqlPort = Resolve-Setting "MySqlPort" $MySqlPort "MYSQL_PORT" "3306"
 $GoogleClientId = Resolve-Setting "GoogleClientId" $GoogleClientId "GOOGLE_CLIENT_ID" ""
 $SmtpHost = Resolve-Setting "SmtpHost" $SmtpHost "SMTP_HOST" ""
 $SmtpPort = Resolve-Setting "SmtpPort" $SmtpPort "SMTP_PORT" ""
@@ -126,10 +148,18 @@ function Test-MySqlReady {
     }
 }
 
-# Initialize MySQL data directory once.
-if (-not (Test-Path (Join-Path $mysqlDataDir "auto.cnf"))) {
+function Initialize-MySqlDataDir {
+    if (Test-Path $mysqlDataDir) {
+        Remove-Item -Recurse -Force $mysqlDataDir -ErrorAction SilentlyContinue
+    }
+    New-Item -ItemType Directory -Force -Path $mysqlDataDir | Out-Null
     Write-Host "Initializing MySQL data directory..." -ForegroundColor Yellow
     & $mysqlExe --initialize-insecure --datadir="$mysqlDataDir"
+}
+
+# Initialize MySQL data directory once.
+if (-not (Test-Path (Join-Path $mysqlDataDir "auto.cnf"))) {
+    Initialize-MySqlDataDir
 }
 
 $mysqlReady = Test-MySqlReady
@@ -148,8 +178,24 @@ if (-not $mysqlReady) {
     }
 
     if (-not $started) {
-        Write-Host "MySQL did not start on port $MySqlPort. Check: $mysqlErr" -ForegroundColor Red
-        exit 1
+        $mysqlErrContent = Get-Content $mysqlErr -ErrorAction SilentlyContinue -Raw
+        if ($mysqlErrContent -match "downgrade|Data Dictionary initialization failed|Cannot downgrade") {
+            Write-Host "Resetting incompatible MySQL data directory and retrying..." -ForegroundColor Yellow
+            Initialize-MySqlDataDir
+            $mysqlProc = Start-Process -FilePath $mysqlExe -ArgumentList $mysqlArgs -WorkingDirectory $projectRoot -RedirectStandardOutput $mysqlOut -RedirectStandardError $mysqlErr -PassThru
+            Set-Content -Path (Join-Path $runDir "mysql.pid") -Value $mysqlProc.Id
+
+            $started = $false
+            for ($i = 0; $i -lt 30; $i++) {
+                Start-Sleep -Milliseconds 500
+                if (Test-MySqlReady) { $started = $true; break }
+            }
+        }
+
+        if (-not $started) {
+            Write-Host "MySQL did not start on port $MySqlPort. Check: $mysqlErr" -ForegroundColor Red
+            exit 1
+        }
     }
 }
 
